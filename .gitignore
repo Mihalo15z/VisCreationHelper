@@ -41,6 +41,10 @@
 *.VC.db
 *.VC.opendb
 
+# Arr
+*.zip
+*.rar
+
 # Precompiled Assets
 SourceArt/**/*.png
 SourceArt/**/*.tga
@@ -53,12 +57,12 @@ Plugins/*/Binaries/*
 Build/*
 
 # Whitelist PakBlacklist-<BuildConfiguration>.txt files
-!Build/*/
-Build/*/**
-!Build/*/PakBlacklist*.txt
+#!Build/*/
+#Build/*/**
+#!Build/*/PakBlacklist*.txt
 
 # Don't ignore icon files in Build
-!Build/**/*.ico
+#!Build/**/*.ico
 
 # Built data for maps
 *_BuiltData.uasset
@@ -72,3 +76,9 @@ Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+#ignore all except plugin
+Content/*
+Config/*
+Source/*
+.vc/*
