@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "VisCreationHelper",
+	"Description": "Tools for creatin visualisation",
+	"Category": "Other",
+	"CreatedBy": "Mikhail Stramavus",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "VisCreationHelper",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	]
+}
