@@ -5,6 +5,8 @@
 #include "VisCreationHelperCommands.h"
 #include "Misc/MessageDialog.h"
 #include "ToolMenus.h"
+#include <Widgets/SVCH_MainWidget.h>
+#include "Widgets/Docking/SDockTab.h"
 
 static const FName VisCreationHelperTabName("VisCreationHelper");
 
@@ -27,6 +29,28 @@ void FVisCreationHelperModule::StartupModule()
 		FCanExecuteAction());
 
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FVisCreationHelperModule::RegisterMenus));
+
+
+	struct Local
+	{
+		static TSharedRef<SDockTab> SpawnWorldCreatorTab(const FSpawnTabArgs& SpawnTabArgs)
+		{
+			const TSharedRef<SDockTab> MajorTab =
+				SNew(SDockTab)
+				.TabRole(ETabRole::MajorTab);
+
+			MajorTab->SetContent(SNew(SVCH_MainWidget));
+
+			return MajorTab;
+		}
+	};
+
+
+
+	// Register a tab spawner so that our tab can be automatically restored from layout files
+	FGlobalTabmanager::Get()->RegisterTabSpawner(VisCreationHelperTabName, FOnSpawnTab::CreateStatic(&Local::SpawnWorldCreatorTab))
+		.SetDisplayName(LOCTEXT("VCHTabTitle", "VCH"))
+		.SetTooltipText(LOCTEXT("VCHTooltipText", "Open the VCH Tab"));
 }
 
 void FVisCreationHelperModule::ShutdownModule()
@@ -41,6 +65,7 @@ void FVisCreationHelperModule::ShutdownModule()
 	FVisCreationHelperStyle::Shutdown();
 
 	FVisCreationHelperCommands::Unregister();
+	FGlobalTabmanager::Get()->UnregisterTabSpawner(VisCreationHelperTabName);
 }
 
 void FVisCreationHelperModule::PluginButtonClicked()
@@ -51,7 +76,8 @@ void FVisCreationHelperModule::PluginButtonClicked()
 							FText::FromString(TEXT("FVisCreationHelperModule::PluginButtonClicked()")),
 							FText::FromString(TEXT("VisCreationHelper.cpp"))
 					   );
-	FMessageDialog::Open(EAppMsgType::Ok, DialogText);
+	//FMessageDialog::Open(EAppMsgType::Ok, DialogText);
+	FGlobalTabmanager::Get()->InvokeTab(VisCreationHelperTabName);
 }
 
 void FVisCreationHelperModule::RegisterMenus()
