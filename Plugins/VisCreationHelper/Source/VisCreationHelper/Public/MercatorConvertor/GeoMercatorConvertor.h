@@ -31,8 +31,8 @@ namespace Detail
 */
 double constexpr My_Sqrt(double x)
 {
-	return x >= 0 && x < std::numeric_limits<double>::infinity()
-		? Detail::sqrtNewtonRaphson(x, x, 0)
+	return x >= 0.0 && x < std::numeric_limits<double>::infinity()
+		? Detail::sqrtNewtonRaphson(x, x, 0.0)
 		: std::numeric_limits<double>::quiet_NaN();
 }
 
@@ -52,69 +52,108 @@ struct  VISCREATIONHELPER_API FDoubleVect2
 	{
 		return FVector(rh.X, rh.Y, 0.0f);
 	}
+	FString ToString()const
+	{
+		return FString::Printf(TEXT("X = %.9f, Y =%.9f"), X, Y);
+	}
 
+	bool EqualTo(const FDoubleVect2& OtherVal, double Epsilon = 0.000'000'001) const
+	{
+		return abs(OtherVal.X - X + OtherVal.Y - Y) < Epsilon;
+	}
 };
 
 
-class VISCREATIONHELPER_API GeoMercatorConvertor final
+class VISCREATIONHELPER_API FGeoMercatorConvertor final
 {
 public:
-	constexpr GeoMercatorConvertor() = default;
-	~GeoMercatorConvertor() = default;
+	constexpr FGeoMercatorConvertor() = default;
+	~FGeoMercatorConvertor() = default;
 private:
 
-	static constexpr double Radius_Major = (6378137.0);
-	static constexpr double Radius_Minor = (6356752.3142);
-	static constexpr double ratio = (Radius_Minor / Radius_Major);
-	static constexpr double eccent = (My_Sqrt(1.0 - ratio * ratio));
-	static constexpr double com = (0.5 * eccent);
-	static constexpr double PI_D = (3.14159265358979323846264338327950288419716939937510);
-	static constexpr double degreesToRadians = (PI_D / 180.0);
-	static constexpr double radiansToDegrees = (180.0 / PI_D);
+	static constexpr double Radius_Major = (6'378'137.0);
+	static constexpr double Radius_Minor = (6'356'752.314'2);
+	static constexpr double Ratio = (Radius_Minor / Radius_Major);
+	static constexpr double Eccent = (My_Sqrt(1.0 - Ratio * Ratio));
+	static constexpr double Com = (0.5 * Eccent);
+	static constexpr double PI_D = (3.141'592'653'589'793'238'462);
+	static constexpr double DegreesToRadians = (PI_D / 180.0);
+	static constexpr double RadiansToDegrees = (180.0 / PI_D);
+	static constexpr double HalfPI = PI_D / 2.0;
+	static constexpr double MaxLim = 89.5;
+	static constexpr double MinLim = -MaxLim;
+	static constexpr double TempRadToDegDivRMajor = RadiansToDegrees / Radius_Major;
+	static constexpr double TempMulRMajAndDToR = Radius_Major * DegreesToRadians;
+	static constexpr double tol = 0.000'000'000'1;
+	static constexpr double Two_D = 2.0;
+	static constexpr double One_D = 1.0;
+	static constexpr double Half_D = 0.5;
 
 private:
-	FORCEINLINE double GetPhi(double ts, double e)
+
+	FORCEINLINE static double GetPhi(double ts)
 	{
-		constexpr int iter = 15;
-		//double halfPI = PI / 2;
-		constexpr double tol = 0.0000000001;
-		double eccnth, Phi, con, dphi;
-		int i;
-		eccnth = 0.5 * e;
-		Phi = PI_D / 2 - 2 * atan(ts);
-		i = iter;
+		//int i(15);
+		double Phi( HalfPI - 2.0 * atan(ts));
 
-		do
-		{
-			con = e * sin(Phi);
-			dphi = PI_D / 2 - 2 * atan(ts * pow((1 - con) / (1 + con), eccnth)) - Phi;
-			Phi += dphi;
+		double con, dphi;
+		// Faster 770+
+		CalcDPhi(con, dphi, Phi, ts) 		 
+			&& CalcDPhi(con, dphi, Phi, ts) 
+			&& CalcDPhi(con, dphi, Phi, ts) 
+			&& CalcDPhi(con, dphi, Phi, ts) 
+			&& CalcDPhi(con, dphi, Phi, ts) 
+											
+			&& CalcDPhi(con, dphi, Phi, ts) 
+			&& CalcDPhi(con, dphi, Phi, ts) 
+			&& CalcDPhi(con, dphi, Phi, ts) 
+			&& CalcDPhi(con, dphi, Phi, ts) 
+			&& CalcDPhi(con, dphi, Phi, ts) 
+											
+			&& CalcDPhi(con, dphi, Phi, ts) 
+			&& CalcDPhi(con, dphi, Phi, ts) 
+			&& CalcDPhi(con, dphi, Phi, ts) 
+			&& CalcDPhi(con, dphi, Phi, ts) 
+			&& CalcDPhi(con, dphi, Phi, ts);
 
-		} while (FMath::Abs<double>(dphi) > tol && --i);
+		//do
+		//{
+		//	con = Eccent * sin(Phi);
+		//	dphi = HalfPI - 2.0 * atan(ts * pow((1.0 - con) / (1.0 + con), Com)) - Phi;
+		//	Phi += dphi;
+
+		//} while (FMath::Abs<double>(dphi) > tol && --i);
 
 		return Phi;
+	}
+
+	FORCEINLINE static bool CalcDPhi(double& con, double& dphi, double& Phi, const double& ts)
+	{
+		con = Eccent * sin(Phi);
+		dphi = HalfPI - Two_D * atan(ts * pow((One_D - con) / (One_D + con), Com)) - Phi;
+		Phi += dphi;
+		return  FMath::Abs<double>(dphi) > tol;
 	}
 
 public:
 	// return FDoubleVect2(X, Y)
 	FORCEINLINE  static FDoubleVect2 GetGeoForMercator(double Lat, double Lon)
 	{
-		double x = Radius_Major * degreesToRadians * Lon;
-
-		Lat = fmin(89.5, fmax(Lat, -89.5));
-		double phi = degreesToRadians * Lat;
-		double con = eccent * sin(phi);
-		con = pow((1 - con) / (1 + con), com);
-		double ts = tan(0.5 * (PI_D * 0.5 - phi)) / con;
-		double y = 0 - Radius_Major * log(ts);
-		return FDoubleVect2(x, y);
+		//double x = TempMulRMajAndDToR * Lon;
+		Lat = fmin(MaxLim, fmax(Lat, MinLim));
+		double phi = DegreesToRadians * Lat;
+		double con = Eccent * sin(phi);
+		con = pow((One_D - con) / (One_D + con), Com);
+		double ts = tan(Half_D * (HalfPI - phi)) / con;
+		//double y = -Radius_Major * log(ts);
+		return FDoubleVect2(TempMulRMajAndDToR * Lon, -Radius_Major * log(ts));
 	}
 
 	// return FDoubleVect2(Lat, Lon)
-	FORCEINLINE FDoubleVect2 GetMercatoforGeo(double X, double Y)
+	FORCEINLINE static FDoubleVect2 GetMercatoforGeo(double X, double Y)
 	{
-		double lon = radiansToDegrees * X / Radius_Major;
-		double lat = radiansToDegrees * GetPhi(exp(0 - (Y / Radius_Major)), eccent);
-		return FDoubleVect2(lat, lon);
+		//double lon = TempRadToDegDivRMajor * X;
+		//double lat = RadiansToDegrees * GetPhi(exp(-(Y / Radius_Major)));
+		return FDoubleVect2(RadiansToDegrees * GetPhi(exp(-(Y / Radius_Major))), TempRadToDegDivRMajor * X);
 	}
 };
