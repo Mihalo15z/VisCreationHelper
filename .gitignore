@@ -83,3 +83,4 @@ Config/*
 Source/*
 .vc/*
 VisCH.uproject
+*.TMP
