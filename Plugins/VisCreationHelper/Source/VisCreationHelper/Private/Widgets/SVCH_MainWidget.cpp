@@ -3,15 +3,32 @@
 
 #include "Widgets/SVCH_MainWidget.h"
 #include "SlateOptMacros.h"
+#include "Input/Reply.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Input/SButton.h"
+#include "VCH_Test.h"
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SVCH_MainWidget::Construct(const FArguments& InArgs)
 {
-	/*
+	
 	ChildSlot
 	[
 		// Populate the widget
+		SNew(SVerticalBox)
+		+ SVerticalBox::Slot()
+		[
+			SNew(SButton).OnClicked(this, &SVCH_MainWidget::OnClickTestButton)
+			.Text(FText::FromString(TEXT("Test Button")))
+		]
 	];
-	*/
+	
 }
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
+
+FReply SVCH_MainWidget::OnClickTestButton()
+{
+	FVCH_Test TestObj;
+	TestObj.GlobalTest();
+	return FReply::Handled();
+}

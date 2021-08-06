@@ -17,4 +17,7 @@ public:
 
 	/** Constructs this widget with InArgs */
 	void Construct(const FArguments& InArgs);
+
+private:
+	FReply OnClickTestButton();
 };
