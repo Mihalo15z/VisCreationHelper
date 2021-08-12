@@ -84,3 +84,7 @@ Source/*
 .vc/*
 VisCH.uproject
 *.TMP
+*.map
+_ImpotrData/*
+
+
