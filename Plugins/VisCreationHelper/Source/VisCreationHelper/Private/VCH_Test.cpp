@@ -3,6 +3,8 @@
 
 #include "VCH_Test.h"
 #include "MercatorConvertor/GeoMercatorConvertor.h"
+#include "PreparationData/FVCH_PreparationDataFunctions.h"
+#include "NameEncoder/FNameEncoder.h"
 
 
 //DECLARE_LOG_CATEGORY_EXTERN(VCH_TestLog, Log, All);
@@ -108,10 +110,13 @@ FString FVCH_Test::GlobalTest()
 {
 	UE_LOG(VCH_TestLog, Log, TEXT("Start Global Test"));
 
-	TestConvertorToMercator();
-	TestPerfomanceForConvertorToMercator();
-	MultiTestConvertorToMercator();
+	//TestConvertorToMercator();
+	//TestPerfomanceForConvertorToMercator();
+	//MultiTestConvertorToMercator();
 
+	//TestGetLevelNames();
+
+	TestEncoderName();
 	return FString();
 }
 
@@ -237,6 +242,43 @@ FString FVCH_Test::MultiTestConvertorToMercator()
 		UE_LOG(VCH_TestLog, Warning, TEXT("Good Math for GeoToMercator num = %i"), ErrorCounter);
 	}
 
+	return FString();
+}
+
+FString FVCH_Test::TestGetLevelNames()
+{
+	UE_LOG(VCH_TestLog, Log, TEXT("Start TestGetLevelNames"));
+	auto Result = FVCH_PreparationDataFunctions::GetLevelNames(FPaths::ProjectDir() + TEXT("_ImpotrData/Maps"));
+
+	if (Result.Num() > 0)
+	{
+		UE_LOG(VCH_TestLog, Log, TEXT("%s, \n ... \n %s"), *Result[0], *Result.Last() );
+	}
+	return {};
+}
+
+FString FVCH_Test::TestLevelsCoords()
+{
+	// load and calculated LevelData
+
+	// Horizontal Test
+
+	// Vertical Test
+
+	return FString();
+}
+
+FString FVCH_Test::TestEncoderName()
+{
+	FNameEncoder Encoder(TEXT("Ad@@##"), '@', '#');
+	auto NameTestMask = Encoder.GetName(43, 64);
+	int32 X = -1, Y = -1;
+	Encoder.GetIndeces(NameTestMask, X, Y);
+	UE_LOG(VCH_TestLog, Log, TEXT("Name  = %s,  X = %i, Y = %i"), *NameTestMask, X, Y);
+	UE_LOG(VCH_TestLog, Log, TEXT("Name  = %s,  X = %i, Y = %i"), *Encoder.GetName(0, 0), 0, 0);
+	NameTestMask = TEXT("AdFG34");
+	Encoder.GetIndeces(NameTestMask, X, Y);
+	UE_LOG(VCH_TestLog, Log, TEXT("Name  = %s,  X = %i, Y = %i"), *NameTestMask, X, Y);
 	return FString();
 }
 

@@ -19,9 +19,18 @@ public:
 	FString GlobalTest();
 
 public:
+	//test for mercator convertor
 	FString TestConvertorToMercator();
 	FString TestPerfomanceForConvertorToMercator();
 	FString MultiTestConvertorToMercator();
+
+	// tests for preparation data
+	FString TestGetLevelNames();
+	FString TestLevelsCoords();
+
+	//tests for NameEncoder
+	FString TestEncoderName();
+
 
 };
 
