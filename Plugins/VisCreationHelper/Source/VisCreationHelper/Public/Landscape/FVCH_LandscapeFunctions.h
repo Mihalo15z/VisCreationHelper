@@ -12,4 +12,8 @@ class VISCREATIONHELPER_API FVCH_LandscapeFunctions
 public:
 	FVCH_LandscapeFunctions();
 	~FVCH_LandscapeFunctions();
+
+	static void ImpotrLandscapesToNewLevels( FString PathToImportData);
+	static void ImpoertLandscapeProxyToNewLevels(FString PathToImportData);
+	static void BackupHeightmaps(FString PathToSave);
 };
