@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include <limits>
+#include "VisCreationHelper.h"
 
 
 
@@ -37,31 +38,7 @@ double constexpr My_Sqrt(double x)
 }
 
 
-struct  VISCREATIONHELPER_API FDoubleVect2
-{
-	double X;
-	double Y;
 
-	constexpr FDoubleVect2() :X(0.0), Y(0.0)
-	{};
-
-	constexpr FDoubleVect2(double x, double y) :X(x), Y(y)
-	{};
-
-	FORCEINLINE FVector operator=(const FDoubleVect2& rh)
-	{
-		return FVector(rh.X, rh.Y, 0.0f);
-	}
-	FString ToString()const
-	{
-		return FString::Printf(TEXT("X = %.9f, Y =%.9f"), X, Y);
-	}
-
-	bool EqualTo(const FDoubleVect2& OtherVal, double Epsilon = 0.000'000'001) const
-	{
-		return abs(OtherVal.X - X + OtherVal.Y - Y) < Epsilon;
-	}
-};
 
 
 class VISCREATIONHELPER_API FGeoMercatorConvertor final
@@ -149,11 +126,21 @@ public:
 		return FDoubleVect2(TempMulRMajAndDToR * Lon, -Radius_Major * log(ts));
 	}
 
+	FORCEINLINE  static FDoubleVect2 GetGeoForMercator(const FDoubleVect2& LatAndLon)
+	{
+		return GetGeoForMercator(LatAndLon.X, LatAndLon.Y);
+	}
+
 	// return FDoubleVect2(Lat, Lon)
 	FORCEINLINE static FDoubleVect2 GetMercatoforGeo(double X, double Y)
 	{
 		//double lon = TempRadToDegDivRMajor * X;
 		//double lat = RadiansToDegrees * GetPhi(exp(-(Y / Radius_Major)));
 		return FDoubleVect2(RadiansToDegrees * GetPhi(exp(-(Y / Radius_Major))), TempRadToDegDivRMajor * X);
+	}
+
+	FORCEINLINE static FDoubleVect2 GetMercatoforGeo(const FDoubleVect2& CoordsXY)
+	{
+		return GetMercatoforGeo(CoordsXY.X, CoordsXY.Y);
 	}
 };
