@@ -6,6 +6,14 @@
 #include "Engine/DeveloperSettings.h"
 #include "VCH_Settings.generated.h"
 
+
+UENUM()
+enum class ELandscapeImportMode : uint8
+{
+	Landscape,
+	LandscapeStreamingProxy
+};
+
 /**
  * 
  */
@@ -19,9 +27,27 @@ public:
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Landscape")
 		TSoftObjectPtr<UMaterial> LandscapeBaseMaterial;
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Landscape")
-		int32 Resolution = 511;
+		int32 Resolution = 255; // make  enum
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Landscape")
-		int32 NumSections = 1;
+		int32 NumSubsections = 2; //  make enum
+	UPROPERTY(Config, EditDefaultsOnly, Category = "Landscape")
+		ELandscapeImportMode ImportMode = ELandscapeImportMode::Landscape;
+	/*
+	(const FGuid& InGuid,
+	int32 InMinX =  0,
+	int32 InMinY = 0,
+	int32 InMaxX = 510,
+	int32 InMaxY = 510,
+	int32 InNumSubsections = 2,
+	int32 InSubsectionSizeQuads = 255,
+	const TMap<FGuid, TArray<uint16>>& InImportHeightData,
+	const TCHAR* const InHeightmapFileName,
+	const TMap<FGuid, TArray<FLandscapeImportLayerInfo>>& InImportMaterialLayerInfos,
+	ELandscapeImportAlphamapType InImportMaterialLayerType,
+	const TArray<struct FLandscapeLayer>* InImportLayers = nullptr);
+
+	*/
+
 
 	// Level
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Levels|Name")
@@ -71,5 +97,14 @@ public:
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Import|Config")
 		FString GeoConfigFieName = TEXT("GeoData.txt");
 
+
+};
+
+
+USTRUCT()
+struct FConfigDataConstructor
+{
+	GENERATED_USTRUCT_BODY()
+public:
 
 };
