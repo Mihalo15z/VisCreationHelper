@@ -110,13 +110,14 @@ FString FVCH_Test::GlobalTest()
 {
 	UE_LOG(VCH_TestLog, Log, TEXT("Start Global Test"));
 
-	//TestConvertorToMercator();
+	TestConvertorToMercator();
 	//TestPerfomanceForConvertorToMercator();
 	//MultiTestConvertorToMercator();
 
 	//TestGetLevelNames();
+	TestLevelsCoords();
 
-	TestEncoderName();
+	//TestEncoderName();
 	return FString();
 }
 
@@ -126,12 +127,12 @@ FString FVCH_Test::TestConvertorToMercator()
 
 	constexpr FDoubleVect2 TestLatLon(32.6553830000000, 57.3566600000000);
 
-	auto TestCoorMerc = FGeoMercatorConvertor::GetGeoForMercator(TestLatLon.X, TestLatLon.Y);
+	auto TestCoorMerc = FGeoMercatorConvertor::GetGeoForMercator(TestLatLon/*.X, TestLatLon.Y*/);
 	auto OldTestCoorMerc = GeoMercatorConvertor::GetGeoForMercator(TestLatLon.X, TestLatLon.Y);
 	UE_LOG(VCH_TestLog, Log, TEXT("Geo: %s"), *TestCoorMerc.ToString());
 	UE_LOG(VCH_TestLog, Log, TEXT("GeoOld: %s"), *OldTestCoorMerc.ToString());
 
-	auto TestCoordGeo = FGeoMercatorConvertor::GetMercatoforGeo(TestCoorMerc.X, TestCoorMerc.Y);
+	auto TestCoordGeo = FGeoMercatorConvertor::GetMercatoforGeo(TestCoorMerc/*.X, TestCoorMerc.Y*/);
 	//GeoMercatorConvertor Geo;
 	auto OldCoordGeo = GeoMercatorConvertor::GetMercatoforGeo(OldTestCoorMerc.X, OldTestCoorMerc.Y);
 	UE_LOG(VCH_TestLog, Log, TEXT("Merk: %s"), *TestCoordGeo.ToString());
@@ -260,10 +261,70 @@ FString FVCH_Test::TestGetLevelNames()
 FString FVCH_Test::TestLevelsCoords()
 {
 	// load and calculated LevelData
+	auto ImportData = FVCH_PreparationDataFunctions::GeneratedImportDataTables(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + TEXT("_ImportData/Maps/Land.xml"));
+	
+	// size Test
+	if (ImportData.Num() == 0)
+	{
+		UE_LOG(VCH_TestLog, Log, TEXT("Empty Import Data"));
+		return {};
+	}
+	const auto CheckSize = ImportData.begin()->Value.SizeXY;
+	const auto ZeroPoint = ImportData.begin()->Value.CoordsXY;
+	constexpr double Epsilon = 0.1;
+
+	int32 MaxNumberIndex(0);
+	int32 MaxLitterIndex(0);
+	FNameEncoder Encoder(TEXT("BY@@##"));
+	for (const auto& LevelData : ImportData)
+	{
+		int32 TemNumberIndex, TempLitterIndex;
+		Encoder.GetIndeces(LevelData.Key, TempLitterIndex, TemNumberIndex);
+		auto SetMaxIndex = [](const int32 CurrentIndex, int32& MaxIndex)
+		{
+			if (CurrentIndex > MaxIndex)
+			{
+				MaxIndex = CurrentIndex;
+			}
+		};
+
+		SetMaxIndex(TemNumberIndex, MaxNumberIndex);
+		SetMaxIndex(TempLitterIndex, MaxLitterIndex);
+
+		
+		if (!LevelData.Value.SizeXY.EqualTo(CheckSize, Epsilon))
+		{
+			auto  difCoords = LevelData.Value.CoordsXY - CheckSize * FDoubleVect2(TemNumberIndex - 1, TempLitterIndex) - ZeroPoint;
+			UE_LOG(VCH_TestLog, Log, TEXT(" Dif for 0 (%s) Check Size %s, Current Size %s, Name = %s"), *difCoords.ToString(), *CheckSize.ToString(), *LevelData.Value.SizeXY.ToString(), *LevelData.Key);
+		}
+	}
 
 	// Horizontal Test
+	UE_LOG(VCH_TestLog, Warning, TEXT("Horizontal  and Vertical Test"));
+	for (int32 i = 0; i < MaxLitterIndex; ++i)
+	{
+		for (int32 j = 1; j < MaxNumberIndex; ++j)
+		{
+			auto LevelName00(Encoder.GetName(i, j));
+			auto LevelName01(Encoder.GetName(i + 1, j));
+			auto LevelName10(Encoder.GetName(i, j + 1));
+			auto LevelName11(Encoder.GetName(i + 1, j + 1));
+			if (!(ImportData.Contains(LevelName00) && ImportData.Contains(LevelName01) && ImportData.Contains(LevelName10) && ImportData.Contains(LevelName11)))
+			{
+				UE_LOG(VCH_TestLog, Warning, TEXT("Not valid names"));
+				continue;
+			}
 
-	// Vertical Test
+			if (!ImportData[LevelName00].EndLatAndLon.EqualTo(ImportData[LevelName11].LatAndLon))
+			{
+				UE_LOG(VCH_TestLog, Log, TEXT("Bad LatLon %s"), *LevelName00, *(ImportData[LevelName00].EndLatAndLon.ToString()));
+			}
+		}
+		
+	}
+
+	auto WorldSize = (ImportData[Encoder.GetName(MaxLitterIndex, MaxNumberIndex)].EndCoordsXY - ImportData.begin()->Value.CoordsXY) * FDoubleVect2(1.0 / MaxNumberIndex, 1.0 / (MaxLitterIndex + 1));
+	UE_LOG(VCH_TestLog, Warning, TEXT("World Size %s"), *WorldSize.ToString());
 
 	return FString();
 }
