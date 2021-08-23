@@ -41,9 +41,24 @@ struct  VISCREATIONHELPER_API FDoubleVect2
 	constexpr FDoubleVect2(double x, double y) :X(x), Y(y)
 	{};
 
-	FORCEINLINE FVector operator=(const FDoubleVect2& rh)
+	constexpr FDoubleVect2(const FDoubleVect2&) = default;
+	constexpr FDoubleVect2(FDoubleVect2&&) = default;
+	FDoubleVect2& operator=(const FDoubleVect2&) = default;
+	FDoubleVect2& operator=(FDoubleVect2&&) = default;
+
+	constexpr FDoubleVect2 operator*(const double& Value) const 
 	{
-		return FVector(rh.X, rh.Y, 0.0f);
+		return FDoubleVect2( this->X * Value, this->Y * Value );
+	}
+
+	constexpr FDoubleVect2 operator*(const FDoubleVect2& Other) const 
+	{
+		return FDoubleVect2(this->X * Other.X, this->Y * Other.Y);
+	}
+
+	FORCEINLINE FVector ToFVector() const 
+	{
+		return FVector(X, Y, 0.0f);
 	}
 	FString ToString()const
 	{
@@ -54,11 +69,23 @@ struct  VISCREATIONHELPER_API FDoubleVect2
 	{
 		return abs(OtherVal.X - X + OtherVal.Y - Y) < Epsilon;
 	}
+
+	FDoubleVect2 operator-(const FDoubleVect2& other) const
+	{
+		return FDoubleVect2(this->X - other.X, this->Y - other.Y);
+	}
+
+	FDoubleVect2 operator+(const FDoubleVect2& other) const
+	{
+		return FDoubleVect2(this->X + other.X, this->Y + other.Y);
+	}
 };
 
 struct FLevelImportData
 {
 public:
+	//FLevelImportData& operator=(FLevelImportData&&) = default;
+	FLevelImportData& operator=(const FLevelImportData&) = default;
 
 	FString ToString() const;
 	FString ToCSVString() const;
