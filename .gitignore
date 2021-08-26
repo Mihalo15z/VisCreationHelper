@@ -85,6 +85,5 @@ Source/*
 VisCH.uproject
 *.TMP
 *.map
-_ImpotrData/*
-_ImpotrData/**
-*_ImpotrData/*
+Temp/*
+_ImportData/*
