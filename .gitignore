@@ -87,3 +87,4 @@ VisCH.uproject
 *.map
 _ImpotrData/*
 _ImpotrData/**
+*_ImpotrData/*
