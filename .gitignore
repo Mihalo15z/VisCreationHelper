@@ -86,7 +86,4 @@ VisCH.uproject
 *.TMP
 *.map
 _ImpotrData/*
-
-
-_ImportData/Maps/Land.xml
-Plugins/VisCreationHelper/Source/VisCreationHelper/Private/PreparationData/Source - Shortcut.lnk
+_ImpotrData/**
