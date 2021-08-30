@@ -5,6 +5,9 @@
 #include "HAL/FileManager.h"
 #include "XmlParser.h"
 #include "MercatorConvertor/GeoMercatorConvertor.h"
+#include "NameEncoder/FNameEncoder.h"
+#include "Async/ParallelFor.h"
+#include "Misc/FileHelper.h"
 //#include "XmlFile.h"
 
 DECLARE_LOG_CATEGORY_CLASS(VCH_PrepDataLog, Log, All);
@@ -15,6 +18,52 @@ FVCH_PreparationDataFunctions::FVCH_PreparationDataFunctions()
 
 FVCH_PreparationDataFunctions::~FVCH_PreparationDataFunctions()
 {
+}
+
+HeightmapDataMap FVCH_PreparationDataFunctions::GetAllHeightmaps(FString Path, int32 Resolution)
+{
+	HeightmapDataMap Result;
+	TArray<FString>  HeightmapNames;
+
+	if (IFileManager::Get().DirectoryExists(*Path))
+	{
+		FString Filter = TEXT(".raw");
+		FString Mask = Path + TEXT("/*") + Filter;
+		IFileManager::Get().FindFiles(HeightmapNames, *Mask, true, false);
+
+		for (const auto& FileName : HeightmapNames)
+		{
+			auto Heightmap(LoadHeightmap(Path + TEXT("/") + FileName, Resolution));
+			if (Heightmap.Num() > 0)
+			{
+				Result.Add(FileName.Replace(*Filter,TEXT("")), MoveTemp(Heightmap));
+			}
+		}
+	}
+	return Result;
+}
+
+TArray<uint16> FVCH_PreparationDataFunctions::LoadHeightmap(FString Path, int32 Resolution)
+{
+	TArray<uint16> Data;
+	TArray<uint8> ImportData;
+	const int32 SqResolution(Resolution * Resolution);
+	if (Resolution > 0 &&
+		FFileHelper::LoadFileToArray(ImportData, *Path, FILEREAD_Silent) &&
+		ImportData.Num() == SqResolution * 2)
+	{
+		Data.AddUninitialized(SqResolution);
+		//FMemory::Memcpy(Data.GetData(), ImportData.GetData(), ImportData.Num());
+		FMemory::Memmove(Data.GetData(), ImportData.GetData(), ImportData.Num());
+		return MoveTemp(Data);
+	}
+	else
+	{
+		UE_LOG(VCH_PrepDataLog, Warning, TEXT("Bad Heightmap %s"), *Path);
+		check(false);
+	}
+		
+	return TArray<uint16>();
 }
 
 TArray<FString> FVCH_PreparationDataFunctions::GetLevelNames(FString Path)
@@ -32,7 +81,6 @@ TArray<FString> FVCH_PreparationDataFunctions::GetLevelNames(FString Path)
 		}
 	}
 
-	
 	return MoveTemp(Result);
 }
 
@@ -72,3 +120,156 @@ LevelImportedDataMap FVCH_PreparationDataFunctions::GeneratedImportDataTables(FS
 	}
 	return Result;
 }
+
+void FVCH_PreparationDataFunctions::RemoveCrackForHeightmaps(HeightmapDataMap& HeightMaps, FString Mask, int32 Resolution)
+{
+	FNameEncoder Encoder(Mask);
+	if (!Encoder.IsValid())
+	{
+		UE_LOG(VCH_PrepDataLog, Error, TEXT("Bad mask  %s"), *Mask);
+		return;
+	}
+	TArray<FString> Keys;
+
+	ParallelFor(HeightMaps.GetKeys(Keys), [&](int32 Index)
+	{
+		int32 LetterIndex(-1), NumericIndex(-1);
+		if (!Encoder.GetIndeces(Keys[Index], LetterIndex, NumericIndex))
+		{
+			//UE_LOG(VCH_PrepDataLog, Error, TEXT("Bad Name for file %s"), *(Keys[Index]));
+			return;
+		}
+		TArray<uint16>& RefToCurrentHeigmap = HeightMaps[Keys[Index]];
+		constexpr uint16 u16_Two = 2;
+
+		//Bottom neighbor
+		auto BottomNeighbor = Encoder.GetName(LetterIndex + 1, NumericIndex);
+		if (HeightMaps.Contains(BottomNeighbor))
+		{
+			TArray<uint16>& RefToBottomHeightmap = HeightMaps[BottomNeighbor];
+			
+			const int32 OffsetForCurrent = Resolution * (Resolution - 1);
+
+			for (int i = 0; i < Resolution; i++)
+			{
+				const auto IndexForCurrentH = OffsetForCurrent + i;
+				const uint16 MidValue = (RefToCurrentHeigmap[IndexForCurrentH] + RefToBottomHeightmap[i]) / u16_Two;
+				RefToCurrentHeigmap[IndexForCurrentH] = MidValue;
+				RefToBottomHeightmap[i] = MidValue;
+			}
+		}
+
+		// Right
+		auto RightNeighbor = Encoder.GetName(LetterIndex, NumericIndex + 1);
+		if (HeightMaps.Contains(RightNeighbor))
+		{
+			TArray<uint16>& RefToRightHeghtmap = HeightMaps[RightNeighbor];
+			for (int i = 0; i < Resolution; i++)
+			{
+				const auto IndexForCurrentH = Resolution * i + Resolution - 1;
+				const auto IndexForRightH = Resolution * i;
+				uint16 MidValue = (RefToCurrentHeigmap[IndexForCurrentH] + RefToRightHeghtmap[IndexForRightH]) / u16_Two;
+				RefToCurrentHeigmap[IndexForCurrentH] = MidValue;
+				RefToRightHeghtmap[IndexForRightH] = MidValue;
+			}
+		}
+		// to do : maybe make lambda
+	}/*, EParallelForFlags::ForceSingleThread*/);
+
+	// Corners 
+	constexpr uint16 u16_Four = 4;
+	for (auto &Heightmap : HeightMaps)
+	{
+		int32 LetterIndex, NumericIndex;
+		Encoder.GetIndeces(Heightmap.Key, LetterIndex, NumericIndex);
+
+		FString RightName(Encoder.GetName(LetterIndex, NumericIndex + 1));
+		FString BottomRightName(Encoder.GetName(LetterIndex + 1, NumericIndex + 1));
+		FString BottomName(Encoder.GetName(LetterIndex + 1, NumericIndex));
+
+
+		if (HeightMaps.Contains(RightName) && HeightMaps.Contains(BottomName) && HeightMaps.Contains(BottomRightName))
+		{
+			int MidValue = (Heightmap.Value[Resolution * Resolution - 1] 
+				+ HeightMaps[RightName][Resolution * (Resolution - 1)] 
+				+ HeightMaps[BottomRightName][0] 
+				+ HeightMaps[BottomName][Resolution - 1]) / u16_Four;
+			Heightmap.Value[Resolution * Resolution - 1] = MidValue;
+			HeightMaps[RightName][Resolution * (Resolution - 1)] = MidValue;
+			HeightMaps[BottomRightName][0] = MidValue;
+			HeightMaps[BottomName][Resolution - 1] = MidValue;
+		}
+	}
+}
+
+void FVCH_PreparationDataFunctions::SaveHeightMaps(const HeightmapDataMap & HeightMaps, FString PathToSave)
+{
+	for (const auto& HeightData : HeightMaps)
+	{
+		auto& Heightmap = HeightData.Value;
+		uint64 DataSize = Heightmap.Num() * 2;
+		TArrayView<uint8> SaveData((uint8*)(HeightData.Value.GetData()), DataSize);
+		FFileHelper::SaveArrayToFile(SaveData, *(PathToSave + HeightData.Key + TEXT(".raw")));
+	}
+}
+
+bool FVCH_PreparationDataFunctions::CheckHeightmaps(const HeightmapDataMap& HeightMaps, int32 Resolution, FString Mask)
+{
+	FNameEncoder Encoder(Mask);
+	if (!Encoder.IsValid())
+	{
+		UE_LOG(VCH_PrepDataLog, Error, TEXT("Bad mask  %s"), *Mask);
+		return false;
+	}
+	TArray<FString> Keys;
+
+	TAtomic<bool> bHasError = false;
+	ParallelFor(HeightMaps.GetKeys(Keys), [&](int32 Index)
+	{
+		int32 LetterIndex(-1), NumericIndex(-1);
+		Encoder.GetIndeces(Keys[Index], LetterIndex, NumericIndex);
+		const auto& RefToCurrentHeigmap = HeightMaps[Keys[Index]];
+		constexpr uint16 u16_Two = 2;
+		// not check first and end points
+		const auto NumCheckPonints = Resolution - 1;
+
+		//Bottom neighbor
+		auto BottomNeighbor = Encoder.GetName(LetterIndex + 1, NumericIndex);
+		if (HeightMaps.Contains(BottomNeighbor))
+		{
+			const auto& RefToBottomHeightmap = HeightMaps[BottomNeighbor];
+
+			const int32 OffsetForCurrent = Resolution * (Resolution - 1);
+			
+			for (int i = 1; i < NumCheckPonints - 1; ++i)
+			{
+				const auto IndexForCurrentH = OffsetForCurrent + i;
+				if (RefToCurrentHeigmap[IndexForCurrentH] != RefToBottomHeightmap[i])
+				{
+					//UE_LOG(VCH_PrepDataLog, Error, TEXT("Bad Value %s = %i, %s = %i , index = %i"), *BottomNeighbor, RefToBottomHeightmap[i], *(Keys[Index]), RefToCurrentHeigmap[IndexForCurrentH], i);
+					bHasError = true;
+					return;
+				}
+			}
+		}
+
+		// Right
+		auto RightNeighbor = Encoder.GetName(LetterIndex, NumericIndex + 1);
+		if (HeightMaps.Contains(RightNeighbor))
+		{
+			const auto& RefToRightHeghtmap = HeightMaps[RightNeighbor];
+			for (int i = 1; i < NumCheckPonints; ++i)
+			{
+				const auto IndexForCurrentH = Resolution * i + Resolution - 1;
+				const auto IndexForRightH = Resolution * i;
+				if (RefToCurrentHeigmap[IndexForCurrentH] != RefToRightHeghtmap[IndexForRightH])
+				{
+					bHasError = true;
+					return;
+				}
+			}
+		}
+	}, EParallelForFlags::ForceSingleThread);
+	return bHasError;
+}
+

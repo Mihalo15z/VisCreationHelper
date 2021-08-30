@@ -18,10 +18,12 @@ public:
 	~FVCH_PreparationDataFunctions();
 	// make all preparations
 	static void PreparationImportData(FString Path);
-	static HeightmapDataMap GetAllHeightmaps(FString Path);
+	static HeightmapDataMap GetAllHeightmaps(FString Path, int32 Resolution);
+	static TArray<uint16> LoadHeightmap(FString Path, int32 Resolution);
 	static TArray<FString> GetLevelNames(FString Path);
 	static void CheckMapFiles(FString Path);
 	static LevelImportedDataMap GeneratedImportDataTables(FString PathToLandXml);
-	static void RemoveCrackForHeightmaps(const HeightmapDataMap& HeightMaps);
+	static void RemoveCrackForHeightmaps(HeightmapDataMap& HeightMaps, FString Mask, int32 Resolution);
 	static void SaveHeightMaps(const HeightmapDataMap& HeightMaps, FString PathToSave);
+	static bool CheckHeightmaps(const HeightmapDataMap& HeightMaps, int32 Resolution, FString Mask);
 };
