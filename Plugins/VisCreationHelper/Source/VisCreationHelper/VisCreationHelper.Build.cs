@@ -43,6 +43,7 @@ public class VisCreationHelper : ModuleRules
 				"Slate",
 				"SlateCore",
                 "XmlParser",
+                "Landscape",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
