@@ -27,9 +27,13 @@ public:
 	// tests for preparation data
 	FString TestGetLevelNames();
 	FString TestLevelsCoords();
+	FString TestWorkForHeightmaps();
 
 	//tests for NameEncoder
 	FString TestEncoderName();
+
+	//Test for import Landscape
+	FString TestImportLandscape();
 
 
 };

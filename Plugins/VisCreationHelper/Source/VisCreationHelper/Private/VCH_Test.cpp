@@ -5,6 +5,8 @@
 #include "MercatorConvertor/GeoMercatorConvertor.h"
 #include "PreparationData/FVCH_PreparationDataFunctions.h"
 #include "NameEncoder/FNameEncoder.h"
+#include "Settings/VCH_Settings.h"
+#include "Landscape/FVCH_LandscapeFunctions.h"
 
 
 //DECLARE_LOG_CATEGORY_EXTERN(VCH_TestLog, Log, All);
@@ -110,14 +112,17 @@ FString FVCH_Test::GlobalTest()
 {
 	UE_LOG(VCH_TestLog, Log, TEXT("Start Global Test"));
 
-	TestConvertorToMercator();
+	//TestConvertorToMercator();
 	//TestPerfomanceForConvertorToMercator();
 	//MultiTestConvertorToMercator();
 
 	//TestGetLevelNames();
-	TestLevelsCoords();
+	//TestLevelsCoords();
+	TestWorkForHeightmaps();
 
 	//TestEncoderName();
+
+	//TestImportLandscape();
 	return FString();
 }
 
@@ -329,6 +334,27 @@ FString FVCH_Test::TestLevelsCoords()
 	return FString();
 }
 
+FString FVCH_Test::TestWorkForHeightmaps()
+{
+	auto SettingsObject = GetDefault<UVCH_Settings>();
+	check(SettingsObject);
+	FString PathToHeightmaps = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + TEXT("_ImportData/") + SettingsObject->HeightmapsDir;
+	auto HeightmapsMap = FVCH_PreparationDataFunctions::GetAllHeightmaps(PathToHeightmaps, SettingsObject->GetFinalResolution());
+
+	if (FVCH_PreparationDataFunctions::CheckHeightmaps(HeightmapsMap, SettingsObject->GetFinalResolution(), SettingsObject->NameMask))
+	{
+		UE_LOG(VCH_TestLog, Warning, TEXT("Start Heightmaps have errors"));
+	}
+	FVCH_PreparationDataFunctions::RemoveCrackForHeightmaps(HeightmapsMap,SettingsObject->NameMask, SettingsObject->GetFinalResolution());
+	if (FVCH_PreparationDataFunctions::CheckHeightmaps(HeightmapsMap, SettingsObject->GetFinalResolution(), SettingsObject->NameMask))
+	{
+		UE_LOG(VCH_TestLog, Error, TEXT("End Heightmaps have errors"));
+		return {};
+	}
+	FVCH_PreparationDataFunctions::SaveHeightMaps(HeightmapsMap, PathToHeightmaps + TEXT("/RightHeightmaps/"));
+	return FString();
+}
+
 FString FVCH_Test::TestEncoderName()
 {
 	FNameEncoder Encoder(TEXT("Ad@@##"), '@', '#');
@@ -340,6 +366,15 @@ FString FVCH_Test::TestEncoderName()
 	NameTestMask = TEXT("AdFG34");
 	Encoder.GetIndeces(NameTestMask, X, Y);
 	UE_LOG(VCH_TestLog, Log, TEXT("Name  = %s,  X = %i, Y = %i"), *NameTestMask, X, Y);
+	return FString();
+}
+
+FString FVCH_Test::TestImportLandscape()
+{
+	FString Path = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + TEXT("_ImportData");
+	//FVCH_LandscapeFunctions::ImpotrLandscapesToNewLevels(Path);
+	FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(Path);
+
 	return FString();
 }
 
