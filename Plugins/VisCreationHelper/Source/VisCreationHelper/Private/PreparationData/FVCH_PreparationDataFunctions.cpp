@@ -150,7 +150,7 @@ void FVCH_PreparationDataFunctions::RemoveCrackForHeightmaps(HeightmapDataMap& H
 			
 			const int32 OffsetForCurrent = Resolution * (Resolution - 1);
 
-			for (int i = 0; i < Resolution; i++)
+			for (int i = 0; i < Resolution; ++i)
 			{
 				const auto IndexForCurrentH = OffsetForCurrent + i;
 				const uint16 MidValue = (RefToCurrentHeigmap[IndexForCurrentH] + RefToBottomHeightmap[i]) / u16_Two;
@@ -164,7 +164,7 @@ void FVCH_PreparationDataFunctions::RemoveCrackForHeightmaps(HeightmapDataMap& H
 		if (HeightMaps.Contains(RightNeighbor))
 		{
 			TArray<uint16>& RefToRightHeghtmap = HeightMaps[RightNeighbor];
-			for (int i = 0; i < Resolution; i++)
+			for (int i = 0; i < Resolution; ++i)
 			{
 				const auto IndexForCurrentH = Resolution * i + Resolution - 1;
 				const auto IndexForRightH = Resolution * i;
@@ -187,10 +187,45 @@ void FVCH_PreparationDataFunctions::RemoveCrackForHeightmaps(HeightmapDataMap& H
 		FString BottomRightName(Encoder.GetName(LetterIndex + 1, NumericIndex + 1));
 		FString BottomName(Encoder.GetName(LetterIndex + 1, NumericIndex));
 
+		bool bContaintRightName(HeightMaps.Contains(RightName));
+		bool bContaintBottomRightName(HeightMaps.Contains(BottomRightName));
+		bool bContaintBottomName(HeightMaps.Contains(BottomName));
 
-		if (HeightMaps.Contains(RightName) && HeightMaps.Contains(BottomName) && HeightMaps.Contains(BottomRightName))
+		uint32 SumHeight(Heightmap.Value[Resolution * Resolution - 1]);
+		uint32 NumLevels(1);
+		auto AddHeightLambda = [&SumHeight, &NumLevels](uint16 Height)
 		{
-			int MidValue = (Heightmap.Value[Resolution * Resolution - 1] 
+			SumHeight += Height;
+			++NumLevels;
+			return true;
+		};
+
+		bContaintRightName			&& AddHeightLambda(HeightMaps[RightName][Resolution * (Resolution - 1)]);
+		bContaintBottomRightName	&& AddHeightLambda(HeightMaps[BottomRightName][0]);
+		bContaintBottomName			&& AddHeightLambda(HeightMaps[BottomName][Resolution - 1]);
+		
+		if (NumLevels == 1)
+		{
+			continue;
+		}
+
+		uint16 MidValue = SumHeight / NumLevels;
+
+		auto SetHeightData = [MidValue](uint16& OutVal)
+		{
+			OutVal = MidValue;
+			return true;
+		};
+		
+		Heightmap.Value[Resolution * Resolution - 1] = MidValue;
+		bContaintRightName			&& SetHeightData(HeightMaps[RightName][Resolution * (Resolution - 1)]);
+		bContaintBottomRightName	&& SetHeightData(HeightMaps[BottomRightName][0]);
+		bContaintBottomName			&& SetHeightData(HeightMaps[BottomName][Resolution - 1]);
+
+		// not change if not valid 1 neighbor !
+		/*if (HeightMaps.Contains(RightName) && HeightMaps.Contains(BottomName) && HeightMaps.Contains(BottomRightName))
+		{
+			uint16 MidValue = (Heightmap.Value[Resolution * Resolution - 1] 
 				+ HeightMaps[RightName][Resolution * (Resolution - 1)] 
 				+ HeightMaps[BottomRightName][0] 
 				+ HeightMaps[BottomName][Resolution - 1]) / u16_Four;
@@ -198,7 +233,7 @@ void FVCH_PreparationDataFunctions::RemoveCrackForHeightmaps(HeightmapDataMap& H
 			HeightMaps[RightName][Resolution * (Resolution - 1)] = MidValue;
 			HeightMaps[BottomRightName][0] = MidValue;
 			HeightMaps[BottomName][Resolution - 1] = MidValue;
-		}
+		}*/
 	}
 }
 
@@ -231,7 +266,7 @@ bool FVCH_PreparationDataFunctions::CheckHeightmaps(const HeightmapDataMap& Heig
 		const auto& RefToCurrentHeigmap = HeightMaps[Keys[Index]];
 		constexpr uint16 u16_Two = 2;
 		// not check first and end points
-		const auto NumCheckPonints = Resolution - 1;
+		const auto NumCheckPonints = Resolution /*- 1*/;
 
 		//Bottom neighbor
 		auto BottomNeighbor = Encoder.GetName(LetterIndex + 1, NumericIndex);
@@ -241,7 +276,7 @@ bool FVCH_PreparationDataFunctions::CheckHeightmaps(const HeightmapDataMap& Heig
 
 			const int32 OffsetForCurrent = Resolution * (Resolution - 1);
 			
-			for (int i = 1; i < NumCheckPonints - 1; ++i)
+			for (int i = 0; i < NumCheckPonints - 1; ++i)
 			{
 				const auto IndexForCurrentH = OffsetForCurrent + i;
 				if (RefToCurrentHeigmap[IndexForCurrentH] != RefToBottomHeightmap[i])
@@ -258,7 +293,7 @@ bool FVCH_PreparationDataFunctions::CheckHeightmaps(const HeightmapDataMap& Heig
 		if (HeightMaps.Contains(RightNeighbor))
 		{
 			const auto& RefToRightHeghtmap = HeightMaps[RightNeighbor];
-			for (int i = 1; i < NumCheckPonints; ++i)
+			for (int i = 0; i < NumCheckPonints; ++i)
 			{
 				const auto IndexForCurrentH = Resolution * i + Resolution - 1;
 				const auto IndexForRightH = Resolution * i;
