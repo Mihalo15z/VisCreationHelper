@@ -38,10 +38,17 @@ private:
 
 public:
 	//  Get Indexes from name
-	void GetIndeces(const FString InName, int32& OutLetterIndex, int32& OutNumericIndex);
+	bool GetIndeces(const FString InName, int32& OutLetterIndex, int32& OutNumericIndex) const;
 	// Get name from Indexes
-	FString GetName(int32 InLetterIndex, int32 InNumericIndex);
+	FString GetName(int32 InLetterIndex, int32 InNumericIndex) const;
+
+	bool CheckName(FString InName) const;
+	bool IsValid() const
+	{
+		return  bValid;
+	}
 private:
+	bool bValid = false;
 
 };
 

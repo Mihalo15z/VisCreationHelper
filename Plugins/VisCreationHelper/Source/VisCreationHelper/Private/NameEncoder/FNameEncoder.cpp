@@ -3,6 +3,7 @@
 
 #include "NameEncoder/FNameEncoder.h"
 
+DECLARE_LOG_CATEGORY_CLASS(VCH_EncoderNameLog, Log, All);
 
 const  FString FNameEncoder::NumberChar = TEXT("0123456789-");
 const FString FNameEncoder::Alphabet =  TEXT("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
@@ -31,8 +32,11 @@ void FNameEncoder::ParseMask()
 	}
 	else
 	{
+		UE_LOG(VCH_EncoderNameLog, Error, TEXT("Bad Mask %s"), *Mask );
 		StartLetterIndex = -1;
 		LenLetterIndex = -1;
+		bValid = false;
+		return;
 	}
 
 	// Numeric Index
@@ -48,13 +52,23 @@ void FNameEncoder::ParseMask()
 	}
 	else
 	{
+		UE_LOG(VCH_EncoderNameLog, Error, TEXT("Bad Mask %s"), *Mask);
 		StartNumericIndex = -1;
 		LenNumericIndex = -1;
+		bValid = false;
+		return;
 	}
+
+	bValid = true;
 }
 
-void FNameEncoder::GetIndeces(const FString InName, int32 & OutLetterIndex, int32 & OutNumericIndex)
+bool FNameEncoder::GetIndeces(const FString InName, int32& OutLetterIndex, int32& OutNumericIndex) const
 {
+	if (!CheckName(InName))
+	{
+		UE_LOG(VCH_EncoderNameLog, Error, TEXT("Bad Name %s"), *InName);
+		return false;
+	}
 	FString letters(InName.Mid(StartLetterIndex, LenLetterIndex));
 	FString numerics(InName.Mid(StartNumericIndex, LenNumericIndex));
 
@@ -67,10 +81,17 @@ void FNameEncoder::GetIndeces(const FString InName, int32 & OutLetterIndex, int3
 		Alphabet.FindChar(letters[i], value);
 		OutLetterIndex += value * FMath::Pow(AlphabetLen, letters.Len() - 1 - i);
 	}
+	return true;
 }
 
-FString FNameEncoder::GetName(int32 InLetterIndex, int32 InNumericIndex)
+FString FNameEncoder::GetName(int32 InLetterIndex, int32 InNumericIndex) const 
 {
+	if (InLetterIndex < 0 || InNumericIndex < 0)
+	{
+		UE_LOG(VCH_EncoderNameLog, Error, TEXT("Bad indexes L = %i, N = %i"), InLetterIndex, InNumericIndex);
+		return {};
+	}
+
 	FString name(Mask);
 	// Get letter index
 	TArray<TCHAR> LetterIndex;
@@ -98,9 +119,22 @@ FString FNameEncoder::GetName(int32 InLetterIndex, int32 InNumericIndex)
 		NumericIndex.Add('\0');
 	}
 
-	name = name.Replace((LetterBlock.GetCharArray().GetData()), LetterIndex.GetData());
-	name = name.Replace((NumericBlock.GetCharArray().GetData()), NumericIndex.GetData());
+	name.ReplaceInline((LetterBlock.GetCharArray().GetData()), LetterIndex.GetData());
+	name.ReplaceInline((NumericBlock.GetCharArray().GetData()), NumericIndex.GetData());
 	return name;
+}
+
+bool FNameEncoder::CheckName(FString InName) const
+{
+	if (InName.Len() != Mask.Len())
+	{
+		return false;
+	}
+	auto LetterData = InName.Mid(StartLetterIndex, LenLetterIndex);
+	auto NumericData = InName.Mid(StartNumericIndex, LenNumericIndex);
+	InName.ReplaceInline(LetterData.GetCharArray().GetData(), LetterBlock.GetCharArray().GetData());
+	InName.ReplaceInline(NumericData.GetCharArray().GetData(), NumericBlock.GetCharArray().GetData());
+	return Mask == InName;
 }
 
 
