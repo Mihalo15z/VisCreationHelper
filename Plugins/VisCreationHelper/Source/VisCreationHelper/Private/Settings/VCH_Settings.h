@@ -61,6 +61,10 @@ public:
 		/*double*/ FString Scale;
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Levels|Coords")
 		/*double*/ FString ZOffset;
+	UPROPERTY(Config, EditDefaultsOnly, Category = "Levels|Coords")
+		FString ZeroLevelName;
+	UPROPERTY(Config, EditDefaultsOnly, Category = "Levels|Coords")
+		/*double*/ FString LevelSize = TEXT("0.0");
 
 
 
@@ -96,8 +100,13 @@ public:
 		FString WaterMasksDir = TEXT("WaterMasks");
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Import|Config")
 		FString GeoConfigFieName = TEXT("GeoData.txt");
+	UPROPERTY(Config, EditDefaultsOnly, Category = "Import|Config")
+		FString LandConfigName = TEXT("land.xml");
 
-
+	int32 GetFinalResolution()const
+	{
+		return Resolution * 2 + 1;
+	}
 };
 
 
