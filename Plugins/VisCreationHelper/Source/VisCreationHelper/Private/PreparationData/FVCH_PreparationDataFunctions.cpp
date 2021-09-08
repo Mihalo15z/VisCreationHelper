@@ -221,19 +221,6 @@ void FVCH_PreparationDataFunctions::RemoveCrackForHeightmaps(HeightmapDataMap& H
 		bContaintRightName			&& SetHeightData(HeightMaps[RightName][Resolution * (Resolution - 1)]);
 		bContaintBottomRightName	&& SetHeightData(HeightMaps[BottomRightName][0]);
 		bContaintBottomName			&& SetHeightData(HeightMaps[BottomName][Resolution - 1]);
-
-		// not change if not valid 1 neighbor !
-		/*if (HeightMaps.Contains(RightName) && HeightMaps.Contains(BottomName) && HeightMaps.Contains(BottomRightName))
-		{
-			uint16 MidValue = (Heightmap.Value[Resolution * Resolution - 1] 
-				+ HeightMaps[RightName][Resolution * (Resolution - 1)] 
-				+ HeightMaps[BottomRightName][0] 
-				+ HeightMaps[BottomName][Resolution - 1]) / u16_Four;
-			Heightmap.Value[Resolution * Resolution - 1] = MidValue;
-			HeightMaps[RightName][Resolution * (Resolution - 1)] = MidValue;
-			HeightMaps[BottomRightName][0] = MidValue;
-			HeightMaps[BottomName][Resolution - 1] = MidValue;
-		}*/
 	}
 }
 
