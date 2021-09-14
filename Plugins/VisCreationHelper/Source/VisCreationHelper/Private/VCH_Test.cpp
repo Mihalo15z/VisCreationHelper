@@ -7,6 +7,8 @@
 #include "NameEncoder/FNameEncoder.h"
 #include "Settings/VCH_Settings.h"
 #include "Landscape/FVCH_LandscapeFunctions.h"
+#include "Assets/FVCH_AssetFunctions.h"
+#include "Async/ParallelFor.h"
 
 
 //DECLARE_LOG_CATEGORY_EXTERN(VCH_TestLog, Log, All);
@@ -122,7 +124,9 @@ FString FVCH_Test::GlobalTest()
 
 	//TestEncoderName();
 
-	//TestImportLandscape();
+	TestImportLandscape();
+
+	//TestImportTextureForLandscape();
 	return FString();
 }
 
@@ -254,12 +258,9 @@ FString FVCH_Test::MultiTestConvertorToMercator()
 FString FVCH_Test::TestGetLevelNames()
 {
 	UE_LOG(VCH_TestLog, Log, TEXT("Start TestGetLevelNames"));
-	auto Result = FVCH_PreparationDataFunctions::GetLevelNames(FPaths::ProjectDir() + TEXT("_ImpotrData/Maps"));
+	FVCH_PreparationDataFunctions::MakeXMlForMapFiles(FPaths::ProjectDir() + TEXT("_ImportData/Maps"), TEXT("Land.xml"));
+	//auto Result = FVCH_PreparationDataFunctions::GetLevelNames(FPaths::ProjectDir() + TEXT("_ImpotrData/Maps"));
 
-	if (Result.Num() > 0)
-	{
-		UE_LOG(VCH_TestLog, Log, TEXT("%s, \n ... \n %s"), *Result[0], *Result.Last() );
-	}
 	return {};
 }
 
@@ -278,23 +279,47 @@ FString FVCH_Test::TestLevelsCoords()
 	const auto ZeroPoint = ImportData.begin()->Value.CoordsXY;
 	constexpr double Epsilon = 0.1;
 
-	int32 MaxNumberIndex(0);
-	int32 MaxLitterIndex(0);
-	FNameEncoder Encoder(TEXT("BY@@##"));
+	int32 MaxNumberIndex(-1);
+	int32 MaxLitterIndex(-1);
+	auto SettingsObject = GetDefault<UVCH_Settings>();
+	check(SettingsObject);
+	FNameEncoder Encoder(SettingsObject->NameMask);
+
+	auto SetMaxIndex = [](const int32 CurrentIndex, int32& MaxIndex)
+	{
+		if (CurrentIndex > MaxIndex)
+		{
+			MaxIndex = CurrentIndex;
+			return true;
+		}
+		return false;
+	};
+
+	FDoubleVect2 SumLevelsSize(0.0, 0.0);
+	int32 NumX(0), NumY(0);
+	//  maybe make one lambda [](double& CurrentSize, double Value, int32& CurrentNum) 
+	auto SumLevelSizeXLambda = [&SumLevelsSize, &NumX](const FDoubleVect2& Value) mutable
+	{
+		SumLevelsSize.X += Value.X;
+		++NumX;
+		return true;
+	};
+
+	auto SumLevelSizeYLambda = [&SumLevelsSize, &NumY](const FDoubleVect2& Value) mutable
+	{
+		SumLevelsSize.Y += Value.Y;
+		++NumY;
+		return true;
+	};
+
+
 	for (const auto& LevelData : ImportData)
 	{
 		int32 TemNumberIndex, TempLitterIndex;
 		Encoder.GetIndeces(LevelData.Key, TempLitterIndex, TemNumberIndex);
-		auto SetMaxIndex = [](const int32 CurrentIndex, int32& MaxIndex)
-		{
-			if (CurrentIndex > MaxIndex)
-			{
-				MaxIndex = CurrentIndex;
-			}
-		};
 
-		SetMaxIndex(TemNumberIndex, MaxNumberIndex);
-		SetMaxIndex(TempLitterIndex, MaxLitterIndex);
+		SetMaxIndex(TemNumberIndex, MaxNumberIndex) && SumLevelSizeXLambda(LevelData.Value.SizeXY);
+		SetMaxIndex(TempLitterIndex, MaxLitterIndex) && SumLevelSizeYLambda(LevelData.Value.SizeXY);;
 
 		
 		if (!LevelData.Value.SizeXY.EqualTo(CheckSize, Epsilon))
@@ -328,8 +353,14 @@ FString FVCH_Test::TestLevelsCoords()
 		
 	}
 
-	auto WorldSize = (ImportData[Encoder.GetName(MaxLitterIndex, MaxNumberIndex)].EndCoordsXY - ImportData.begin()->Value.CoordsXY) * FDoubleVect2(1.0 / MaxNumberIndex, 1.0 / (MaxLitterIndex + 1));
+	FDoubleVect2 Num2D(NumX, NumY);
+	FDoubleVect2 LevelSizeBySum = SumLevelsSize / Num2D;
+	UE_LOG(VCH_TestLog, Warning, TEXT("World Size by Sum %s"), *SumLevelsSize.ToString());
+	UE_LOG(VCH_TestLog, Display, TEXT("Level Size by Sum %s"), *LevelSizeBySum.ToString());
+	auto WorldSize = (ImportData[Encoder.GetName(MaxLitterIndex, MaxNumberIndex)].EndCoordsXY - ImportData.begin()->Value.CoordsXY);
 	UE_LOG(VCH_TestLog, Warning, TEXT("World Size %s"), *WorldSize.ToString());
+
+	UE_LOG(VCH_TestLog, Display, TEXT("Level Size Geo %s"), *(WorldSize/ Num2D).ToString());
 
 	return FString();
 }
@@ -340,6 +371,10 @@ FString FVCH_Test::TestWorkForHeightmaps()
 	check(SettingsObject);
 	FString PathToHeightmaps = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + TEXT("_ImportData/") + SettingsObject->HeightmapsDir;
 	auto HeightmapsMap = FVCH_PreparationDataFunctions::GetAllHeightmaps(PathToHeightmaps, SettingsObject->GetFinalResolution());
+
+	uint16 MinH, MaxH;
+	FVCH_PreparationDataFunctions::GetMinMaxForHeightmaps(HeightmapsMap, MinH, MaxH);
+	FVCH_PreparationDataFunctions::CorrectHMapsRange(HeightmapsMap, MinH, MaxH, 1352);
 
 	if (FVCH_PreparationDataFunctions::CheckHeightmaps(HeightmapsMap, SettingsObject->GetFinalResolution(), SettingsObject->NameMask))
 	{
@@ -375,6 +410,25 @@ FString FVCH_Test::TestImportLandscape()
 	//FVCH_LandscapeFunctions::ImpotrLandscapesToNewLevels(Path);
 	FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(Path);
 
+	return FString();
+}
+
+FString FVCH_Test::TestImportTextureForLandscape()
+{
+	auto SettingsObject = GetDefault<UVCH_Settings>();
+	FString TextureName("BYAV23");
+	FString PathToSave("/Game/Textures");
+	FString PathToTexture = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + TEXT("_ImportData/") + SettingsObject->TexturesDir + TEXT("/BYAV23.png");
+
+	auto Texture = FVCH_AssetFunctions::ImportTextureForLandscape(TextureName, PathToTexture, PathToSave);
+	if (Texture != nullptr)
+	{
+		UE_LOG(VCH_TestLog, Log, TEXT("Load texture - Good"));
+	}
+	else
+	{
+		UE_LOG(VCH_TestLog, Warning, TEXT("Load Texture - Bad"));
+	}
 	return FString();
 }
 

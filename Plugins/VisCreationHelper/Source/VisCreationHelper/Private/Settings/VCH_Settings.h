@@ -62,6 +62,8 @@ public:
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Levels|Coords")
 		/*double*/ FString ZOffset;
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Levels|Coords")
+		/*double*/ FString DeltaHeight;
+	UPROPERTY(Config, EditDefaultsOnly, Category = "Levels|Coords")
 		FString ZeroLevelName;
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Levels|Coords")
 		/*double*/ FString LevelSize = TEXT("0.0");

@@ -11,6 +11,10 @@
 #include "Landscape.h"
 #include "LandscapeStreamingProxy.h"
 #include "LandscapeInfo.h"
+#include "Materials/MaterialInterface.h"
+#include "Assets/FVCH_AssetFunctions.h"
+#include "Materials/MaterialInstanceConstant.h"
+//#include "LandscapeProxy.h"
 
 DECLARE_LOG_CATEGORY_CLASS(VCH_LandscapeLog, Log, All);
 
@@ -195,16 +199,25 @@ void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImp
 	// load Heightmaps (and Remover crack? mb this is different function (work oly *.raw files(open - edit - save);
 	FString PathToHeightmaps = PathToImportData + SlashStr + ConfigObject->HeightmapsDir;
 	auto HeightMaps(FVCH_PreparationDataFunctions::GetAllHeightmaps(PathToHeightmaps, ConfigObject->GetFinalResolution()));
+	uint16 MinH(0), MaxH(0);
+	FVCH_PreparationDataFunctions::GetMinMaxForHeightmaps(HeightMaps, MinH, MaxH);
+	FVCH_PreparationDataFunctions::CorrectHMapsRange(HeightMaps, MinH, MaxH, 1400);
 	FVCH_PreparationDataFunctions::RemoveCrackForHeightmaps(HeightMaps, *ConfigObject->NameMask, ConfigObject->GetFinalResolution());
+	FVCH_PreparationDataFunctions::GetMinMaxForHeightmaps(HeightMaps, MinH, MaxH);
 	// load geo data 
 	FString PathToLandConfig = PathToImportData + SlashStr + ConfigObject->MapsDir + SlashStr + ConfigObject->LandConfigName;
 	auto LevelData(FVCH_PreparationDataFunctions::GeneratedImportDataTables(PathToLandConfig));
 	// calculate levelSize(mb calc to GeneratedImportDataTables
-	double LevelSize = FCString::Atod(*ConfigObject->LevelSize);
-	double LevelZOffset = FCString::Atod(*ConfigObject->ZOffset);
+	
+	const double LevelZOffset = FCString::Atod(*ConfigObject->ZOffset);
+	const double GeoScale = ConfigObject->Scale.IsEmpty() ? 1.0 : FCString::Atod(*ConfigObject->Scale);
+	const double LevelSize = FCString::Atod(*ConfigObject->LevelSize) * GeoScale * 100.0;
+	const double DeltaHeight = FCString::Atod(*ConfigObject->DeltaHeight);
+	//double HeightFactor = FCString::Atod(*ConfigObject->)
 	FRotator LandRotation(FRotator::ZeroRotator);
-	FVector  LandPosition(0.f, 0.f, LevelZOffset * 100.f);
-	FVector LandScale(LevelSize / (ConfigObject->GetFinalResolution() - 1.0), LevelSize / (ConfigObject->GetFinalResolution() - 1.0), 100.f);
+	FVector  LandPosition(0.f, 0.f, LevelZOffset * 100.0);
+	double ResolutionLand = ConfigObject->Resolution * 2.0;
+	FVector LandScale(LevelSize / ResolutionLand, LevelSize / ResolutionLand, (DeltaHeight / 256.0) * 100.0);
 	//const auto& FirstLevelData = *LevelData.begin();
 	//const auto& LastLevelData = *LevelData.end();
 	//FirstLevelData.Value.CoordsXY
@@ -339,6 +352,27 @@ void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImp
 					// UpdateLandscapeSectionsOffset(FIntPoint(Offset.X, Offset.Y), land); // section offset is 2D 
 					bool bShowWarnings = false;
 					ULandscapeInfo::RecreateLandscapeInfo(GWorld, bShowWarnings);
+				}
+				FString PathToLandscapeData(TEXT("/Game/") + ConfigObject->PathToLandscapeMatAndTextures);
+				FString MatInstName = HeightMap.Key + TEXT("_Inst");
+				FString PathToMInst = PathToLandscapeData + SlashStr + MatInstName /*+ TEXT(".") + MatInstName*/;
+				// change paths  to /Game/ConfigObject->PathToLandscapeMatAndTextures/MapName
+				auto MatInst = FVCH_AssetFunctions::CreateMaterialInstance(PathToMInst, Cast<UMaterialInterface>(LandscapeBaseMaterial));
+				auto Texture = FVCH_AssetFunctions::ImportTextureForLandscape(HeightMap.Key, PathToImportData + SlashStr + ConfigObject->TexturesDir + SlashStr + HeightMap.Key + TEXT(".png"), PathToLandscapeData);
+				if (MatInst && Texture)
+				{
+
+					MatInst->SetTextureParameterValueEditorOnly(TEXT("BaseTexture"), Texture);
+					MatInst->SetScalarParameterValueEditorOnly(TEXT("LitterOffset"), LitterOffset);
+					MatInst->SetScalarParameterValueEditorOnly(TEXT("NumericOffset"), NumericOffset);
+					MatInst->PostEditChange();
+					MatInst->MarkPackageDirty();
+					LandscapeProxy->LandscapeMaterial = MatInst;
+					FPropertyChangedEvent PropertyChangedEvent(FindFieldChecked<FProperty>(LandscapeProxy->GetClass(), FName("LandscapeMaterial")));
+					LandscapeProxy->PostEditChangeProperty(PropertyChangedEvent);
+					//LandscapeProxy->EditorSetLandscapeMaterial(MatInst);
+					LandscapeProxy->PostEditChange();
+					LandscapeProxy->MarkPackageDirty();
 				}
 				FEditorFileUtils::SaveLevel(NewWorld->PersistentLevel, *MapFileName);
 				//if (BaseMaterial)

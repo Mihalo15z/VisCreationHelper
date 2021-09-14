@@ -46,14 +46,21 @@ struct  VISCREATIONHELPER_API FDoubleVect2
 	FDoubleVect2& operator=(const FDoubleVect2&) = default;
 	FDoubleVect2& operator=(FDoubleVect2&&) = default;
 
+	FDoubleVect2& operator+=(const FDoubleVect2& Value)
+	{
+		X += Value.X;
+		Y += Value.Y;
+		return *this;
+	}
+
 	constexpr FDoubleVect2 operator*(const double& Value) const 
 	{
-		return FDoubleVect2( this->X * Value, this->Y * Value );
+		return FDoubleVect2( X * Value, Y * Value );
 	}
 
 	constexpr FDoubleVect2 operator*(const FDoubleVect2& Other) const 
 	{
-		return FDoubleVect2(this->X * Other.X, this->Y * Other.Y);
+		return FDoubleVect2(X * Other.X, Y * Other.Y);
 	}
 
 	FORCEINLINE FVector ToFVector() const 
@@ -70,14 +77,24 @@ struct  VISCREATIONHELPER_API FDoubleVect2
 		return abs(OtherVal.X - X + OtherVal.Y - Y) < Epsilon;
 	}
 
-	FDoubleVect2 operator-(const FDoubleVect2& other) const
+	constexpr FDoubleVect2 operator-(const FDoubleVect2& other) const
 	{
-		return FDoubleVect2(this->X - other.X, this->Y - other.Y);
+		return FDoubleVect2(X - other.X, Y - other.Y);
 	}
 
-	FDoubleVect2 operator+(const FDoubleVect2& other) const
+	constexpr FDoubleVect2 operator+(const FDoubleVect2& other) const
 	{
-		return FDoubleVect2(this->X + other.X, this->Y + other.Y);
+		return FDoubleVect2(X + other.X, Y + other.Y);
+	}
+
+	constexpr FDoubleVect2 operator/(const double& Value) const
+	{
+		return FDoubleVect2(X / Value, Y / Value);
+	}
+
+	constexpr FDoubleVect2 operator/(const FDoubleVect2& Value) const
+	{
+		return FDoubleVect2(X / Value.X, Y / Value.Y);
 	}
 };
 

@@ -20,4 +20,5 @@ public:
 
 private:
 	FReply OnClickTestButton();
+	FReply OnClickTestButton2();
 };

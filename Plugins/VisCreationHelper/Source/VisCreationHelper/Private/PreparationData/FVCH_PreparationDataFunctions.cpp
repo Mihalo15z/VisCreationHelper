@@ -12,6 +12,8 @@
 
 DECLARE_LOG_CATEGORY_CLASS(VCH_PrepDataLog, Log, All);
 
+bool ProcessMapFile(FString Map_FileName, double& LonR, double& LatD, double& width, double& lon, double& lat);
+
 FVCH_PreparationDataFunctions::FVCH_PreparationDataFunctions()
 {
 }
@@ -99,7 +101,7 @@ LevelImportedDataMap FVCH_PreparationDataFunctions::GeneratedImportDataTables(FS
 		UE_LOG(VCH_PrepDataLog, Warning, TEXT("Bad RootNode for file %s"), *Path);
 		return {};
 	}
-
+	
 	LevelImportedDataMap Result;
 	for (const auto GeoNoda : RootNoda->GetChildrenNodes())
 	{
@@ -118,6 +120,7 @@ LevelImportedDataMap FVCH_PreparationDataFunctions::GeneratedImportDataTables(FS
 
 		Result.Add(LevelData.LevelName, LevelData);
 	}
+
 	return Result;
 }
 
@@ -216,12 +219,74 @@ void FVCH_PreparationDataFunctions::RemoveCrackForHeightmaps(HeightmapDataMap& H
 			OutVal = MidValue;
 			return true;
 		};
-		
+
 		Heightmap.Value[Resolution * Resolution - 1] = MidValue;
 		bContaintRightName			&& SetHeightData(HeightMaps[RightName][Resolution * (Resolution - 1)]);
 		bContaintBottomRightName	&& SetHeightData(HeightMaps[BottomRightName][0]);
 		bContaintBottomName			&& SetHeightData(HeightMaps[BottomName][Resolution - 1]);
 	}
+}
+
+void FVCH_PreparationDataFunctions::GetMinMaxForHeightmaps(const HeightmapDataMap & HeightMaps, uint16 & OutMin, uint16 & OutMax)
+{
+	struct TempMinMax
+	{
+		uint16 MinValue = 65'535;
+		uint16 MaxValue = 0;
+		//TempMinMax() :MinValue(65'535), MaxValue(0) {};
+	};
+	TArray<TempMinMax> MinMaxValues;
+	MinMaxValues.AddDefaulted(HeightMaps.Num());
+	TArray<FString> Keys;
+	auto numH = HeightMaps.GetKeys(Keys);
+	ParallelFor(HeightMaps.Num(), [&HeightMaps, &MinMaxValues, &Keys](int32 index)
+	{
+		for (auto Value : HeightMaps[Keys[index]])
+		{
+			if (Value < MinMaxValues[index].MinValue)
+				MinMaxValues[index].MinValue = Value;
+			if (Value > MinMaxValues[index].MaxValue)
+				MinMaxValues[index].MaxValue = Value;
+		}
+		UE_LOG(VCH_PrepDataLog, Error, TEXT("Min = %i, Max = %i for %s "), MinMaxValues[index].MinValue, MinMaxValues[index].MaxValue,*Keys[index]);
+	}/*, EParallelForFlags::ForceSingleThread*/);
+
+	OutMin = 65'535;
+	OutMax = 0;
+	for (auto Value : MinMaxValues)
+	{
+		if (Value.MinValue < OutMin)
+			OutMin = Value.MinValue;
+		if (Value.MaxValue > OutMax)
+			OutMax = Value.MaxValue;
+	}
+	UE_LOG(VCH_PrepDataLog, Warning, TEXT("Min = %i, Max = %i for Height "), OutMin, OutMax);
+}
+
+void FVCH_PreparationDataFunctions::CorrectHMapsRange(HeightmapDataMap & HeightMaps, uint16 InMin, uint16 InMax, uint32 StableRange)
+{
+	constexpr uint16 MaxValue = 65'535;
+	constexpr uint16 MediumValue = 65'536 / 2 - 1;
+	constexpr uint16 StableCoof = 65'536 / 4 - 1; 
+	constexpr double MedV = 65'536 / 2;
+	if (InMax > MediumValue)
+	{
+		UE_LOG(VCH_PrepDataLog, Warning, TEXT("Hright Stable "));
+		return;
+	}
+	double CurrentRange = InMax - InMin;
+	//  test this!!!
+	double Coof = static_cast<double>(MediumValue) / static_cast<double>(InMax);
+	TArray<FString> Keys;
+	auto numH = HeightMaps.GetKeys(Keys);
+	ParallelFor(HeightMaps.Num(), [&HeightMaps, &Keys, Coof, StableCoof, MedV](int32 index)
+	{
+		for (auto& Value : HeightMaps[Keys[index]])
+		{
+			Value = static_cast<uint16>(static_cast<double>(Value) * Coof + MedV);
+			//Value = static_cast<uint16>(static_cast<double>(Value + 1) * Coof + MedV);
+		}
+	});
 }
 
 void FVCH_PreparationDataFunctions::SaveHeightMaps(const HeightmapDataMap & HeightMaps, FString PathToSave)
@@ -262,7 +327,7 @@ bool FVCH_PreparationDataFunctions::CheckHeightmaps(const HeightmapDataMap& Heig
 			const auto& RefToBottomHeightmap = HeightMaps[BottomNeighbor];
 
 			const int32 OffsetForCurrent = Resolution * (Resolution - 1);
-			
+
 			for (int i = 0; i < NumCheckPonints - 1; ++i)
 			{
 				const auto IndexForCurrentH = OffsetForCurrent + i;
@@ -293,5 +358,80 @@ bool FVCH_PreparationDataFunctions::CheckHeightmaps(const HeightmapDataMap& Heig
 		}
 	}, EParallelForFlags::ForceSingleThread);
 	return bHasError;
+}
+
+double FVCH_PreparationDataFunctions::CalculateLevelSize(LevelImportedDataMap MapsData)
+{
+	return 0.0;
+}
+
+void FVCH_PreparationDataFunctions::MakeXMlForMapFiles(FString Path, FString LandFileName)
+{
+	TArray<FString>  Result;
+
+	if (IFileManager::Get().DirectoryExists(*Path))
+	{
+		FString Filter = TEXT(".map");
+		FString Mask = Path + TEXT("/*") + Filter;
+		IFileManager::Get().FindFiles(Result, *Mask, true, false);
+
+		if (Result.Num() > 0)
+		{
+			FString XMl_Data(TEXT("<?xml version=\"1.0\" encoding=\"windows-1251\"?>\n<Land>"));
+			auto RemoveNotValidDataLamda = [](TArray<FString>& Data)
+			{
+				for (auto& st : Data)
+				{
+					st.ReplaceInline(TEXT(" "), TEXT(""));
+				}
+			};
+
+			for (const auto& FileName : Result)
+			{
+				TArray<FString> parsedLines, GeoLine, GeoLineRD;
+				if (FFileHelper::LoadANSITextFileToStrings(*(Path + TEXT("/") + FileName), NULL, parsedLines))
+				{
+					// see *.map file for GlobalMapper
+					parsedLines[52].ParseIntoArray(GeoLine, TEXT(","), true);
+					parsedLines[50].ParseIntoArray(GeoLineRD, TEXT(","), false);
+					if (GeoLine.Num() < 3 || GeoLineRD.Num() < 3)
+					{
+						UE_LOG(VCH_PrepDataLog, Warning, TEXT("Bad map file, path = %s"), *FileName);
+						continue;
+					}
+
+					RemoveNotValidDataLamda(GeoLine);
+					RemoveNotValidDataLamda(GeoLineRD);
+
+					XMl_Data.Append(FString::Printf(TEXT("\n\t<Sector name=\"%s\"\tleft=\"%s\"\ttop=\"%s\"\tright=\"%s\"\tbottom=\"%s\"/>"), *(FileName.Replace(*Filter, TEXT(""))), *GeoLine[2], *GeoLineRD[3], *GeoLineRD[2], *GeoLine[3]));
+				}
+			}
+
+			XMl_Data.Append(FString::Printf(TEXT("\n</Land><!-- Total number of files %i -->"), Result.Num()));
+			FFileHelper::SaveStringToFile(XMl_Data, *(Path + TEXT("/") + LandFileName));
+		}
+		else
+		{
+			UE_LOG(VCH_PrepDataLog, Warning, TEXT("Not Found *.map files, path = %s"), *Path);
+		}
+	}
+}
+
+bool ProcessMapFile(FString Map_FileName, double& LonR, double& LatD, double& width, double& lon, double& lat)
+{
+	TArray<FString> parsedLines, GeoLine, GeoLineRD;
+
+	if (FFileHelper::LoadANSITextFileToStrings(*Map_FileName, NULL, parsedLines))
+	{
+		parsedLines[52].ParseIntoArray(GeoLine, TEXT(","), false);
+		parsedLines[54].ParseIntoArray(GeoLineRD, TEXT(","), false);
+		lat = (FCString::Atod(*GeoLine[3]));
+		lon = (FCString::Atod(*GeoLine[2]));
+		LonR = (FCString::Atod(*GeoLineRD[2]));
+		LatD = (FCString::Atod(*GeoLineRD[3]));
+		return true;
+	}
+	else
+		return false;
 }
 

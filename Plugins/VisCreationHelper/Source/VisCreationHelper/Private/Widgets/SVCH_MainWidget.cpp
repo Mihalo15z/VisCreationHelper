@@ -21,6 +21,12 @@ void SVCH_MainWidget::Construct(const FArguments& InArgs)
 			SNew(SButton).OnClicked(this, &SVCH_MainWidget::OnClickTestButton)
 			.Text(FText::FromString(TEXT("Test Button")))
 		]
+		+ SVerticalBox::Slot()
+		[
+			SNew(SButton).OnClicked(this, &SVCH_MainWidget::OnClickTestButton2)
+			.Text(FText::FromString(TEXT("Test Button 2 ")))
+		]
+
 	];
 	
 }
@@ -30,5 +36,13 @@ FReply SVCH_MainWidget::OnClickTestButton()
 {
 	FVCH_Test TestObj;
 	TestObj.GlobalTest();
+	return FReply::Handled();
+}
+
+FReply SVCH_MainWidget::OnClickTestButton2()
+{
+	FVCH_Test TestObj;
+	TestObj.TestGetLevelNames();
+	TestObj.TestLevelsCoords();
 	return FReply::Handled();
 }

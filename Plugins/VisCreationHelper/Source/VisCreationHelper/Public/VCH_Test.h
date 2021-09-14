@@ -35,6 +35,9 @@ public:
 	//Test for import Landscape
 	FString TestImportLandscape();
 
+	// Test for assets
+	FString TestImportTextureForLandscape();
+
 
 };
 
