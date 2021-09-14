@@ -54,12 +54,7 @@ void FVCH_LandscapeFunctions::ImpotrLandscapesToNewLevels(FString PathToImportDa
 	FRotator LandRotation = FRotator::ZeroRotator;
 	FVector  LandPosition = FVector(0.f, 0.f, LevelZOffset * 100.f);
 	FVector LandScale(LevelSize / (ConfigObject->GetFinalResolution() - 1.0), LevelSize / (ConfigObject->GetFinalResolution() - 1.0), 100.f);
-	//const auto& FirstLevelData = *LevelData.begin();
-	//const auto& LastLevelData = *LevelData.end();
-	//FirstLevelData.Value.CoordsXY
 
-	
-	
 	//Test HeightMaps Size;
 
 	// test for height maps data (debug)
@@ -218,13 +213,6 @@ void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImp
 	FVector  LandPosition(0.f, 0.f, LevelZOffset * 100.0);
 	double ResolutionLand = ConfigObject->Resolution * 2.0;
 	FVector LandScale(LevelSize / ResolutionLand, LevelSize / ResolutionLand, (DeltaHeight / 256.0) * 100.0);
-	//const auto& FirstLevelData = *LevelData.begin();
-	//const auto& LastLevelData = *LevelData.end();
-	//FirstLevelData.Value.CoordsXY
-
-
-
-	//Test HeightMaps Size;
 
 	// test for height maps data (debug)
 	FNameEncoder Encoder(ConfigObject->NameMask);
@@ -256,17 +244,13 @@ void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImp
 
 	FGuid LandscapeGuid = FGuid::NewGuid();
 	ALandscape* Landscape = GWorld->SpawnActor<ALandscape>();
-	// Landscape->SetActorTransform(FTransform(FQuat::Identity, FVector::ZeroVector, FVector(100, 100, 100)));
+
 	Landscape->SetActorLocation(LandPosition);
 	Landscape->SetActorScale3D(LandScale);
 	Landscape->SetActorRotation(LandRotation);
 	// Setup layers list for importing
 	TArray<FLandscapeImportLayerInfo> ImportLayers;
-	//SetupLandscapeImportLayers(ImportSettings, GWorld->GetOutermost()->GetName(), INDEX_NONE, ImportLayers);
-	//Landscape->Import()
-	// Set landscape configuration
-	//Landscape->LandscapeMaterial = ImportSettings.LandscapeMaterial.Get();
-	//Landscape->NumSubsections
+
 	Landscape->ComponentSizeQuads = 510;
 	Landscape->NumSubsections = 2;
 	Landscape->SubsectionSizeQuads = 255;
@@ -276,9 +260,13 @@ void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImp
 	//	Landscape->EditorLayerSettings.Add(FLandscapeEditorLayerSettings(ImportLayerInfo.LayerInfo));
 	//}
 	Landscape->CreateLandscapeInfo();
+
+	int32 CountHMap(0);
 	
 	for (const auto& HeightMap : HeightMaps)
 	{
+		++CountHMap;
+		GWarn->StatusUpdate(CountHMap, HeightMaps.Num(), FText::FromString(TEXT("ImportingLandscapeTiles", "Importing landscape tiles:") + HeightMap.Key));
 		if (Encoder.GetIndeces(HeightMap.Key, CurrentLitterIndex, CurrentNumericIndex))
 		{
 			LitterOffset = CurrentLitterIndex - ZeroLitterIndex;
@@ -320,11 +308,6 @@ void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImp
 				LandscapeProxy->SetActorScale3D(LandScale);
 				LandscapeProxy->SetActorRotation(LandRotation);
 				LandscapeProxy->SetActorLabel(HeightMap.Key + TEXT("LandscapeStreming"));
-				//FString NameToFind;
-				//int32 LetterIndex, NumericIndex;
-				//Encoder.GetIndeces(i, LetterIndex, NumericIndex);
-				//int32 XCof = config.startX - NumericIndex;
-				//int32 YCof = config.startY - LetterIndex;
 
 				FVector Offset(NumericOffset * LevelSize, LitterOffset * LevelSize, 0.f);
 				if (Offset != FVector::ZeroVector)
@@ -375,16 +358,11 @@ void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImp
 					LandscapeProxy->MarkPackageDirty();
 				}
 				FEditorFileUtils::SaveLevel(NewWorld->PersistentLevel, *MapFileName);
-				//if (BaseMaterial)
-				//{
-				//	ApplyMaterial(i, LandscapeProxy);
-				//}
 			}
 			NewWorld->DestroyWorld(false);
 			CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 		}
 	}
-	//GWarn->StatusUpdate(TileIndex, ImportSettings.HeightmapFileList.Num(), FText::Format(LOCTEXT("ImportingLandscapeTiles", "Importing landscape tiles: {0}"), FText::FromString(TileName)));
 
 	GWarn->EndSlowTask();
 }
