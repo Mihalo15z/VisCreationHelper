@@ -346,8 +346,8 @@ void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImp
 				{
 
 					MatInst->SetTextureParameterValueEditorOnly(TEXT("BaseTexture"), Texture);
-					MatInst->SetScalarParameterValueEditorOnly(TEXT("LitterOffset"), LitterOffset);
-					MatInst->SetScalarParameterValueEditorOnly(TEXT("NumericOffset"), NumericOffset);
+					MatInst->SetScalarParameterValueEditorOnly(TEXT("LitterOffset"), NumericOffset);
+					MatInst->SetScalarParameterValueEditorOnly(TEXT("NumericOffset"), LitterOffset);
 					MatInst->PostEditChange();
 					MatInst->MarkPackageDirty();
 					LandscapeProxy->LandscapeMaterial = MatInst;
