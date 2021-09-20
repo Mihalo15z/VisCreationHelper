@@ -179,7 +179,7 @@ void FVCH_LandscapeFunctions::ImpotrLandscapesToNewLevels(FString PathToImportDa
 void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImportData)
 {
 	GWarn->BeginSlowTask(FText::FromString(TEXT("Import LamdscapeStreamingProxy")), true);
-
+	GWorld->PersistentLevel->ApplyWorldOffset(FVector(0.f), false);
 	const FString SlashStr = TEXT("/");
 	auto ConfigObject = GetDefault<UVCH_Settings>();
 
@@ -272,7 +272,10 @@ void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImp
 			LitterOffset = CurrentLitterIndex - ZeroLitterIndex;
 			NumericOffset = CurrentNumericIndex - ZeroNumericIndex;
 
+
 			FString MapFileName = WorldRootPath + HeightMap.Key + FPackageName::GetMapPackageExtension();
+
+			UE_LOG(VCH_LandscapeLog, Warning, TEXT(" map  name %s  offset L =%i, N = %i"), *HeightMap.Key, LitterOffset, NumericOffset);
 			// Create a new world - so we can 'borrow' its level
 			UWorld* NewWorld = UWorld::CreateWorld(EWorldType::None, false);
 			check(NewWorld);
@@ -346,8 +349,8 @@ void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImp
 				{
 
 					MatInst->SetTextureParameterValueEditorOnly(TEXT("BaseTexture"), Texture);
-					MatInst->SetScalarParameterValueEditorOnly(TEXT("LitterOffset"), NumericOffset);
-					MatInst->SetScalarParameterValueEditorOnly(TEXT("NumericOffset"), LitterOffset);
+					MatInst->SetScalarParameterValueEditorOnly(TEXT("LitterOffset"), -LitterOffset);
+					MatInst->SetScalarParameterValueEditorOnly(TEXT("NumericOffset"), -NumericOffset ); //- 1???
 					MatInst->PostEditChange();
 					MatInst->MarkPackageDirty();
 					LandscapeProxy->LandscapeMaterial = MatInst;
