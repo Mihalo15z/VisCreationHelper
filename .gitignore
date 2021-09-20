@@ -87,3 +87,8 @@ VisCH.uproject
 *.map
 Temp/*
 _ImportData/*
+
+Vis60/*
+Plugins/ConfigPlugin/*
+OtherData/*
+MovableObjectandRand/*
