@@ -92,3 +92,5 @@ Vis60/*
 Plugins/ConfPlugin/*
 OtherData/*
 MovableObjectRand/*
+Plugins/ConfPlugin/ConfPlugin.uplugin
+Plugins/ConfPlugin/Source/ConfPlugin/ConfPlugin.Build.cs
