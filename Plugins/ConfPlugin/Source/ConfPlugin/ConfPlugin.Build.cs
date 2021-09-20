@@ -6,7 +6,8 @@ namespace UnrealBuildTool.Rules
 	{
 		public ConfPlugin(ReadOnlyTargetRules Target) : base(Target)
 		{
-			PublicIncludePaths.AddRange(
+            PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+            PublicIncludePaths.AddRange(
 				new string[] {
 					// ... add public include paths required here ...
 				}
@@ -14,7 +15,7 @@ namespace UnrealBuildTool.Rules
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
-					"Developer/ConfPlugin/Private",
+					//"ConfPlugin/Private",
 					// ... add other private include paths required here ...
 				}
 				);

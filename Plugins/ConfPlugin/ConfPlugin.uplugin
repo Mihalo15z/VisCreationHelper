@@ -5,7 +5,6 @@
 	"Version" : 1,
 	"VersionName" : "1.0",
 	"CreatedBy" : "Epic Games, Inc.",
-	"CreatedByURL" : "http://epicgames.com",
 	"Description" : "An example of a minimal plugin.  This can be used as a starting point when creating your own plugin.",
 	"Category" : "Custom",
 	"EnabledByDefault" : true,
@@ -14,7 +13,7 @@
 	[
 		{
 			"Name" : "ConfPlugin",
-			"Type" : "Developer"
+			"Type" : "Runtime"
 		}
 	]
 }
