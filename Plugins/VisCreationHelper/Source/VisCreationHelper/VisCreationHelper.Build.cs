@@ -45,6 +45,7 @@ public class VisCreationHelper : ModuleRules
                 "XmlParser",
                 "Landscape",
                 "MaterialUtilities",
+                "DeveloperSettings"
 
 				// ... add private dependencies that you statically link with here ...	
 			}
