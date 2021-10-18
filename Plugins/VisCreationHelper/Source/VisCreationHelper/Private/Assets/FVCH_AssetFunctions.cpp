@@ -63,7 +63,8 @@ UMaterialInstanceConstant* FVCH_AssetFunctions::CreateMaterialInstance(FString P
 
 		UPackage* MaterialOuter(nullptr);
 		{
-			MaterialOuter = CreatePackage(NULL, *(PathToImport));
+			//MaterialOuter = CreatePackage(NULL, *(PathToImport));
+			MaterialOuter = CreatePackage(*(PathToImport));
 			MaterialOuter->FullyLoad();
 			MaterialOuter->Modify();
 		}
