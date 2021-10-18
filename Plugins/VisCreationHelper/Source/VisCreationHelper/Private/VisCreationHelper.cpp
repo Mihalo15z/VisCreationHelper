@@ -70,14 +70,9 @@ void FVisCreationHelperModule::ShutdownModule()
 
 void FVisCreationHelperModule::PluginButtonClicked()
 {
-	//// Put your "OnButtonClicked" stuff here
-	//FText DialogText = FText::Format(
-	//						LOCTEXT("PluginButtonDialogText", "Add code to {0} in {1} to override this button's actions"),
-	//						FText::FromString(TEXT("FVisCreationHelperModule::PluginButtonClicked()")),
-	//						FText::FromString(TEXT("VisCreationHelper.cpp"))
-	//				   );
-	//FMessageDialog::Open(EAppMsgType::Ok, DialogText);
-	FGlobalTabmanager::Get()->InvokeTab(VisCreationHelperTabName);
+
+	//FGlobalTabmanager::Get()->InvokeTab(VisCreationHelperTabName); 
+	FGlobalTabmanager::Get()->TryInvokeTab(VisCreationHelperTabName); //Ue26+
 }
 
 void FVisCreationHelperModule::RegisterMenus()
