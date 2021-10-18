@@ -8,6 +8,7 @@ class UStaticMesh;
 class UActorComponent;
 class AActor;
 struct FVCHMeshData;
+//struct FVC
 
 /**
  * 
@@ -37,7 +38,24 @@ struct VISCREATIONHELPER_API InstanceParams
 	//InstanceParams(const FVCHMeshData* InMeshData, const TArray<FTransform>& Intransforms);
 };
 
-class VISCREATIONHELPER_API VCH_FoliageFunctions
+//USTRUCT()
+//struct FForestTypeParams
+//{
+//	GENERATED_USTRUCT_BODY()
+//
+//	UPROPERTY(EditAnywhere)
+//	TSoftObjectPtr<UStaticMesh> MeshPath;
+//	UPROPERTY(EditAnywhere)
+//	float MinScale = 1.f;
+//	UPROPERTY(EditAnywhere)
+//	float MaxScale = 1.f;
+//	UPROPERTY(EditAnywhere)
+//	float MinDrawDistance = 400000.f;
+//	UPROPERTY(EditAnywhere)
+//	float MaxDrawDistance = 500000.f;;
+//};
+
+class VISCREATIONHELPER_API FVCH_FoliageFunctions
 {
 public:
 
@@ -47,5 +65,8 @@ public:
 	// work only loading levels.
 	static void RemoveAllInstancesInTheWorld(/* params -include instances, extrude instances, ...*/);
 	void SetCollision(bool bEnable);
+
+	static void GenerateForest(const FString& HeightmapsPath, const FString& ForestMapsPath, const FString& WaterMaskPath = {});
+	static void ClearAllIFA();
 
 };
