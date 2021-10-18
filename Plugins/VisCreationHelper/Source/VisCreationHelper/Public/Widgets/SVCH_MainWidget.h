@@ -5,6 +5,10 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 
+class SBorder;
+//class SComboButton;
+template< class T>
+class SComboBox;
 /**
  * 
  */
@@ -21,4 +25,15 @@ public:
 private:
 	FReply OnClickTestButton();
 	FReply OnClickTestButton2();
+
+private: // comboBox functions and data
+	void OnSelectedVariantSetChanged(TSharedPtr<FString> NewItem, ESelectInfo::Type SelectType);
+
+	TArray<TSharedPtr<FString> > VariantSetOptions;
+	FString CurrentOptionsStr;
+	FText CurrentOptionsText;
+	FText GetCurrentOptionText() const;
+private:
+	TSharedPtr<SBorder> BorederForContent;
+	TSharedPtr<SComboBox<TSharedPtr<FString> > > SwitchModeComboBox;
 };
