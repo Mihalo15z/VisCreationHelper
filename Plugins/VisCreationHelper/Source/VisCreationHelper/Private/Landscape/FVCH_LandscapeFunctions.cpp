@@ -14,6 +14,11 @@
 #include "Materials/MaterialInterface.h"
 #include "Assets/FVCH_AssetFunctions.h"
 #include "Materials/MaterialInstanceConstant.h"
+#include "EngineUtils.h"
+#include "Engine/World.h"
+#include "LandscapeProxy.h"
+#include "LandscapeEdit.h"
+#include "Misc/FileHelper.h"
 //#include "LandscapeProxy.h"
 
 DECLARE_LOG_CATEGORY_CLASS(VCH_LandscapeLog, Log, All);
@@ -372,5 +377,51 @@ void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImp
 
 void FVCH_LandscapeFunctions::BackupHeightmaps(FString PathToSave)
 {
+	auto ClearLandscapeLabelLambda = [](const FString& InName)
+	{
+		auto Result = InName.Replace(TEXT("LandscapeStreming"), TEXT(""));
+		Result.ReplaceInline(TEXT("Landscape"), TEXT(""));
+		return Result;
+	};
+
+	for (TActorIterator<ALandscapeProxy> Iter(GWorld, ALandscapeProxy::StaticClass()); Iter; ++Iter)
+	{
+		ALandscapeProxy* Landscape = *Iter;
+		if (Landscape)
+		{
+			ULandscapeInfo* Info = nullptr;
+			auto SectionOffset = Landscape->LandscapeSectionOffset;
+			int32 LandscapeSectionSize = Landscape->NumSubsections  *  Landscape->SubsectionSizeQuads;
+			Info = Landscape->GetLandscapeInfo();
+			FString Name = ClearLandscapeLabelLambda(Landscape->GetActorLabel());
+			// not work for StreamingLandscape procsy
+			//if (Info && !Name.IsEmpty())
+			//	Info->ExportHeightmap(PathToSave / Name + TEXT(".raw"));
+			
+
+			FLandscapeEditDataInterface  EditorLandscapeInterface(Info);
+			int32 MinX(MAX_int32);
+			int32 MinY(MAX_int32);
+			int32 MaxX(-MAX_int32);
+			int32 MaxY(-MAX_int32);
+			int32 Resolution = 0;
+			if (!(Info->GetLandscapeExtent(MinX, MinY, MaxX, MaxY)/* && Resolution == ((MaxX - MinX > MaxY - MinY) ? MaxY - MinY : MaxX - MinX))*/))
+			{
+				continue;
+			}
+
+			TArray<uint16> HeightData;
+			//HeightData.AddZeroed((MaxX - MinX + 1) * (MaxY - MinY + 1));
+			int32 sizeArr = (LandscapeSectionSize + 1) * (LandscapeSectionSize + 1);
+			HeightData.AddZeroed(sizeArr);
+			//EditorLandscapeInterface.GetHeightDataFast(MinX, MinY, MaxX, MaxY, HeightData.GetData(), 0);
+			EditorLandscapeInterface.GetHeightDataFast(SectionOffset.X, SectionOffset.Y, SectionOffset.X + LandscapeSectionSize, SectionOffset.Y +LandscapeSectionSize, HeightData.GetData(), 0);
+			TArray<uint8> SaveData;
+			
+			SaveData.AddZeroed(sizeArr * 2);
+			FMemory::Memmove(SaveData.GetData(), HeightData.GetData(), SaveData.Num());
+			FFileHelper::SaveArrayToFile(SaveData, *(PathToSave / Name + TEXT(".raw")));
+		}
+	}
 }
 
