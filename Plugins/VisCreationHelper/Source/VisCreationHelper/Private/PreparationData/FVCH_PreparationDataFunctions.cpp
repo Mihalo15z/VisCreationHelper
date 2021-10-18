@@ -8,11 +8,13 @@
 #include "NameEncoder/FNameEncoder.h"
 #include "Async/ParallelFor.h"
 #include "Misc/FileHelper.h"
+#include "IImageWrapper.h"
+#include "Modules/ModuleManager.h"
+#include "IImageWrapperModule.h"
+//#include "LandscapeProxy.h"
 //#include "XmlFile.h"
 
 DECLARE_LOG_CATEGORY_CLASS(VCH_PrepDataLog, Log, All);
-
-bool ProcessMapFile(FString Map_FileName, double& LonR, double& LatD, double& width, double& lon, double& lat);
 
 FVCH_PreparationDataFunctions::FVCH_PreparationDataFunctions()
 {
@@ -356,14 +358,14 @@ bool FVCH_PreparationDataFunctions::CheckHeightmaps(const HeightmapDataMap& Heig
 				}
 			}
 		}
-	}, EParallelForFlags::ForceSingleThread);
+	});
 	return bHasError;
 }
 
-double FVCH_PreparationDataFunctions::CalculateLevelSize(LevelImportedDataMap MapsData)
-{
-	return 0.0;
-}
+//double FVCH_PreparationDataFunctions::CalculateLevelSize(LevelImportedDataMap MapsData)
+//{
+//	return 0.0;
+//}
 
 void FVCH_PreparationDataFunctions::MakeXMlForMapFiles(FString Path, FString LandFileName)
 {
@@ -391,10 +393,15 @@ void FVCH_PreparationDataFunctions::MakeXMlForMapFiles(FString Path, FString Lan
 				TArray<FString> parsedLines, GeoLine, GeoLineRD;
 				if (FFileHelper::LoadANSITextFileToStrings(*(Path + TEXT("/") + FileName), NULL, parsedLines))
 				{
+					if (parsedLines.Num() < 53)
+					{
+						UE_LOG(VCH_PrepDataLog, Warning, TEXT("Bad map file, path = %s"), *FileName);
+						continue;
+					}
 					// see *.map file for GlobalMapper
 					parsedLines[52].ParseIntoArray(GeoLine, TEXT(","), true);
 					parsedLines[50].ParseIntoArray(GeoLineRD, TEXT(","), false);
-					if (GeoLine.Num() < 3 || GeoLineRD.Num() < 3)
+					if (GeoLine.Num() < 4 || GeoLineRD.Num() < 4)
 					{
 						UE_LOG(VCH_PrepDataLog, Warning, TEXT("Bad map file, path = %s"), *FileName);
 						continue;
@@ -417,21 +424,51 @@ void FVCH_PreparationDataFunctions::MakeXMlForMapFiles(FString Path, FString Lan
 	}
 }
 
-bool ProcessMapFile(FString Map_FileName, double& LonR, double& LatD, double& width, double& lon, double& lat)
+TArray64<uint8> FVCH_PreparationDataFunctions::LoadImage(const FString& Path)
 {
-	TArray<FString> parsedLines, GeoLine, GeoLineRD;
-
-	if (FFileHelper::LoadANSITextFileToStrings(*Map_FileName, NULL, parsedLines))
+	TArray64<uint8> data;
+	if (FFileHelper::LoadFileToArray(data, *Path, FILEREAD_Silent))
 	{
-		parsedLines[52].ParseIntoArray(GeoLine, TEXT(","), false);
-		parsedLines[54].ParseIntoArray(GeoLineRD, TEXT(","), false);
-		lat = (FCString::Atod(*GeoLine[3]));
-		lon = (FCString::Atod(*GeoLine[2]));
-		LonR = (FCString::Atod(*GeoLineRD[2]));
-		LatD = (FCString::Atod(*GeoLineRD[3]));
-		return true;
+		auto& ImageWrapperModule = FModuleManager::GetModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
+		TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG);
+		if (ImageWrapper->SetCompressed(data.GetData(), data.Num()) && (ImageWrapper->GetRaw(ERGBFormat::RGBA, 8, data)))
+		{
+			return data;
+		}
+		else
+		{
+			UE_LOG(VCH_PrepDataLog, Error, TEXT("%s"), *("bad file: " + Path));
+		}
 	}
-	else
-		return false;
+	return data;
 }
+
+//void FVCH_PreparationDataFunctions::MakeXMLForForestGenerator(FString Path)
+//{
+//		FString Result;
+//		Result.Append("<?xml version=\"1.0\" encoding = \"Windows-1252\"?>\n\t<Data>\n\t<Levels>\n");
+//		for (auto level : GWorld->GetLevels())
+//		{
+//			GWorld->SetCurrentLevel(level);
+//			//ALandscapeProxy* landscape(nullptr);
+//			//landscape = nullptr; // GetLandscapeOfCurrentLevel();
+//
+//			//if(landscape)
+//			//{
+//			//	Result.Append("\t\t<info name=\"" + landscape->GetActorLabel() + "\" ");
+//			//	FVector origen;
+//			//	FVector bound;
+//			//	landscape->GetActorBounds(true, origen, bound);
+//			//	Result.Append(" origin=\"" + origen.ToString());
+//			//	Result.Append("\" bound=\"" + bound.ToString());
+//			//	Result.Append("\" location=\"" + landscape->GetActorLocation().ToString());
+//			//	Result.Append("\" />\n");
+//			//}
+//		}
+//		Result.Append("\t</Levels>\n</Data>");
+//		//FString Path = FPaths::ProjectContentDir() + "backupXML/" + "InfoLevels.xml";
+//		FFileHelper::SaveStringToFile(Result, *Path);
+//	
+//}
+
 
