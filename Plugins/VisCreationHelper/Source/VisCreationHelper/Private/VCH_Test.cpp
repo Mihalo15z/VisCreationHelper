@@ -9,6 +9,7 @@
 #include "Landscape/FVCH_LandscapeFunctions.h"
 #include "Assets/FVCH_AssetFunctions.h"
 #include "Async/ParallelFor.h"
+#include "Foliage/FVCH_FoliageFunctions.h"
 
 
 //DECLARE_LOG_CATEGORY_EXTERN(VCH_TestLog, Log, All);
@@ -120,13 +121,16 @@ FString FVCH_Test::GlobalTest()
 
 	//TestGetLevelNames();
 	//TestLevelsCoords();
-	TestWorkForHeightmaps();
+	//TestWorkForHeightmaps();
 
 	//TestEncoderName();
 
-	TestImportLandscape();
+	//TestImportLandscape();
+	TestExportHeigmaps();
 
 	//TestImportTextureForLandscape();
+
+	//TestForestGeneration();
 	return FString();
 }
 
@@ -413,6 +417,14 @@ FString FVCH_Test::TestImportLandscape()
 	return FString();
 }
 
+FString FVCH_Test::TestExportHeigmaps()
+{
+	auto SettingsObject = GetDefault<UVCH_Settings>();
+	FString PathToSave = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + TEXT("_ImportData/") + SettingsObject->HeightmapsDir / TEXT("BackHeightmaps");
+	FVCH_LandscapeFunctions::BackupHeightmaps(PathToSave);
+	return FString();
+}
+
 FString FVCH_Test::TestImportTextureForLandscape()
 {
 	auto SettingsObject = GetDefault<UVCH_Settings>();
@@ -429,6 +441,22 @@ FString FVCH_Test::TestImportTextureForLandscape()
 	{
 		UE_LOG(VCH_TestLog, Warning, TEXT("Load Texture - Bad"));
 	}
+	return FString();
+}
+
+FString FVCH_Test::TestForestGeneration()
+{
+	auto SettingsObject = GetDefault<UVCH_Settings>();
+	FString PathToforestMask = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + TEXT("_ImportData/Forest");
+	FString PathToHeightmaps = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + TEXT("_ImportData/") + SettingsObject->HeightmapsDir;
+	FString PathToWaterMask = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + TEXT("_ImportData/") + SettingsObject->WaterMasksDir;
+	FVCH_FoliageFunctions::GenerateForest(PathToHeightmaps, PathToforestMask, PathToWaterMask);
+	return FString();
+}
+
+FString FVCH_Test::TestClearAllIFA()
+{
+	FVCH_FoliageFunctions::ClearAllIFA();
 	return FString();
 }
 

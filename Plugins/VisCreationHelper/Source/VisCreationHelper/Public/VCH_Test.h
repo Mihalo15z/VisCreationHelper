@@ -34,9 +34,14 @@ public:
 
 	//Test for import Landscape
 	FString TestImportLandscape();
+	FString TestExportHeigmaps();
 
 	// Test for assets
 	FString TestImportTextureForLandscape();
+
+	//Test static forest generation
+	FString TestForestGeneration();
+	FString TestClearAllIFA();
 
 
 };
