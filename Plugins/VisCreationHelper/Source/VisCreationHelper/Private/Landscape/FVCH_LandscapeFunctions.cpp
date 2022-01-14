@@ -181,7 +181,7 @@ void FVCH_LandscapeFunctions::ImpotrLandscapesToNewLevels(FString PathToImportDa
 	GWarn->EndSlowTask();
 }
 
-void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImportData)
+void FVCH_LandscapeFunctions::ImportLandscapeProxyToNewLevels(FString PathToImportData)
 {
 	GWarn->BeginSlowTask(FText::FromString(TEXT("Import LamdscapeStreamingProxy")), true);
 	GWorld->PersistentLevel->ApplyWorldOffset(FVector(0.f), false);
@@ -200,10 +200,11 @@ void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImp
 	FString PathToHeightmaps = PathToImportData + SlashStr + ConfigObject->HeightmapsDir;
 	auto HeightMaps(FVCH_PreparationDataFunctions::GetAllHeightmaps(PathToHeightmaps, ConfigObject->GetFinalResolution()));
 	uint16 MinH(0), MaxH(0);
-	FVCH_PreparationDataFunctions::GetMinMaxForHeightmaps(HeightMaps, MinH, MaxH);
-	FVCH_PreparationDataFunctions::CorrectHMapsRange(HeightMaps, MinH, MaxH, 1400);
-	FVCH_PreparationDataFunctions::RemoveCrackForHeightmaps(HeightMaps, *ConfigObject->NameMask, ConfigObject->GetFinalResolution());
-	FVCH_PreparationDataFunctions::GetMinMaxForHeightmaps(HeightMaps, MinH, MaxH);
+	//FVCH_PreparationDataFunctions::GetMinMaxForHeightmaps(HeightMaps, MinH, MaxH);
+	//FVCH_PreparationDataFunctions::CorrectHMapsRange(HeightMaps, 1400);
+	if(!FVCH_PreparationDataFunctions::CheckHeightmaps(HeightMaps, ConfigObject->GetFinalResolution(), ConfigObject->NameMask))
+		FVCH_PreparationDataFunctions::RemoveCrackForHeightmaps(HeightMaps, *ConfigObject->NameMask, ConfigObject->GetFinalResolution());
+	//FVCH_PreparationDataFunctions::GetMinMaxForHeightmaps(HeightMaps, MinH, MaxH);
 	// load geo data 
 	FString PathToLandConfig = PathToImportData + SlashStr + ConfigObject->MapsDir + SlashStr + ConfigObject->LandConfigName;
 	auto LevelData(FVCH_PreparationDataFunctions::GeneratedImportDataTables(PathToLandConfig));
@@ -311,13 +312,13 @@ void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImp
 					, ELandscapeImportAlphamapType::Layered);
 				LandscapeProxy->GetSharedProperties(Landscape);
 				//if (LandscapeProxy)
-				
-				LandscapeProxy->SetActorLocation(LandPosition);
+				FVector Offset(NumericOffset * LevelSize, LitterOffset * LevelSize, 0.f);
+				LandscapeProxy->SetActorLocation(LandPosition + Offset);
 				LandscapeProxy->SetActorScale3D(LandScale);
 				LandscapeProxy->SetActorRotation(LandRotation);
 				LandscapeProxy->SetActorLabel(HeightMap.Key + TEXT("LandscapeStreming"));
 
-				FVector Offset(NumericOffset * LevelSize, LitterOffset * LevelSize, 0.f);
+/*				FVector Offset(NumericOffset * LevelSize, LitterOffset * LevelSize, 0.f);
 				if (Offset != FVector::ZeroVector)
 				{
 					NewWorld->PersistentLevel->ApplyWorldOffset(Offset, false);
@@ -329,16 +330,16 @@ void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImp
 							GEditor->BroadcastOnActorMoved(Actor);
 						}
 					}
-				}	
+				}*/	
 
 				if (LandscapeProxy)
 				{
 					FVector	DrawScale = LandscapeProxy->GetRootComponent()->GetRelativeScale3D();
 					FIntPoint QuadsSpaceOffset;
-					FIntPoint QuadsSpaceOffset2(510, 510);
-					QuadsSpaceOffset.X = FMath::RoundToInt(Offset.X / DrawScale.X);
-					QuadsSpaceOffset.Y = FMath::RoundToInt(Offset.Y / DrawScale.Y);
-					LandscapeProxy->SetAbsoluteSectionBase(QuadsSpaceOffset + LandscapeProxy->LandscapeSectionOffset + QuadsSpaceOffset2);
+					//FIntPoint QuadsSpaceOffset2(510, 510);
+					QuadsSpaceOffset.X = FMath::RoundToInt(-Offset.X / DrawScale.X);
+					QuadsSpaceOffset.Y = FMath::RoundToInt(-Offset.Y / DrawScale.Y);
+					LandscapeProxy->SetAbsoluteSectionBase(QuadsSpaceOffset + LandscapeProxy->LandscapeSectionOffset /*+ QuadsSpaceOffset2*/);
 					UE_LOG(VCH_LandscapeLog, Warning, TEXT("%s  section offset %s"), *(QuadsSpaceOffset + LandscapeProxy->LandscapeSectionOffset).ToString(), *LandscapeProxy->LandscapeSectionOffset.ToString());
 					// UpdateLandscapeSectionsOffset(FIntPoint(Offset.X, Offset.Y), land); // section offset is 2D 
 					bool bShowWarnings = false;
@@ -349,7 +350,7 @@ void FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(FString PathToImp
 				FString PathToMInst = PathToLandscapeData + SlashStr + MatInstName /*+ TEXT(".") + MatInstName*/;
 				// change paths  to /Game/ConfigObject->PathToLandscapeMatAndTextures/MapName
 				auto MatInst = FVCH_AssetFunctions::CreateMaterialInstance(PathToMInst, Cast<UMaterialInterface>(LandscapeBaseMaterial));
-				auto Texture = FVCH_AssetFunctions::ImportTextureForLandscape(HeightMap.Key, PathToImportData + SlashStr + ConfigObject->TexturesDir + SlashStr + HeightMap.Key + TEXT(".png"), PathToLandscapeData);
+				auto Texture = FVCH_AssetFunctions::ImportTextureForLandscape(HeightMap.Key, PathToImportData + SlashStr + ConfigObject->TexturesDir /*+ SlashStr + HeightMap.Key + TEXT(".png")*/, PathToLandscapeData);
 				if (MatInst && Texture)
 				{
 
@@ -423,5 +424,87 @@ void FVCH_LandscapeFunctions::BackupHeightmaps(FString PathToSave)
 			FFileHelper::SaveArrayToFile(SaveData, *(PathToSave / Name + TEXT(".raw")));
 		}
 	}
+}
+
+// load level => find landscapeStreamingProxy => PROCESS(InFunction) => Save
+void IteratedLevelsForLandscape(const TFunction< void(const FAssetData& AssetData, ALandscapeStreamingProxy* Landscape)>& InFunction, bool bSave = true)
+{
+	auto ConfigObject = GetDefault<UVCH_Settings>();
+	check(ConfigObject);
+
+	FString Path = TEXT("/Game/") + ConfigObject->MapsDir;
+	auto Assets = FVCH_AssetFunctions::GetAssetsByPath(Path);
+	for (const auto& LevelData : Assets)
+	{
+		if (LevelData.GetClass() == (UWorld::StaticClass()))
+		{
+			CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
+			FEditorFileUtils::LoadMap((LevelData.ObjectPath.ToString()));
+
+			check(GWorld);
+			for (TActorIterator<ALandscapeStreamingProxy> Iter(GWorld); Iter; ++Iter)
+			{
+				auto* Landscape = *Iter;
+				if (Landscape)
+				{
+					InFunction(LevelData, Landscape);
+					if (bSave)
+					{
+						Landscape->MarkPackageDirty();
+						Landscape->PostEditChange();
+						FEditorFileUtils::SaveCurrentLevel();
+					}
+					break;
+				}
+			}
+		}
+	}
+}
+
+void FVCH_LandscapeFunctions::UpdateLandscapeName()
+{
+	FString PrefixName = TEXT("LSP_");
+	auto MakeNewNameForLandscape = [&PrefixName](const FAssetData& AssetData, ALandscapeStreamingProxy* Landscape)
+	{
+		Landscape->SetActorLabel(PrefixName + AssetData.AssetName.ToString());
+	};
+
+	IteratedLevelsForLandscape(MakeNewNameForLandscape, true);
+
+}
+
+void FVCH_LandscapeFunctions::SetLandscapeMaterial()
+{
+	auto ConfigObject = GetDefault<UVCH_Settings>();
+	check(ConfigObject);
+
+	FNameEncoder Encoder(ConfigObject->NameMask);
+
+	auto MaterialSoftPath = ConfigObject->LandscapeBaseMaterial;
+	FString PathToMaterialsInst = TEXT("/Game/") + ConfigObject->PathToLandscapeMatAndTextures + TEXT("/Materials");
+
+	auto SetLandMaterial = [&Encoder, &MaterialSoftPath, &PathToMaterialsInst](const FAssetData& AssetData, ALandscapeStreamingProxy* Landscape)
+	{
+		FString LevelDataName = Encoder.FromXYName(AssetData.AssetName.ToString());
+		int32 LetterIndex, NumericIndex;
+		Encoder.GetIndeces(LevelDataName, LetterIndex, NumericIndex);
+		FString MatInstName = LevelDataName + TEXT("_Inst");
+		FString PathToMInst = PathToMaterialsInst / MatInstName;
+		// change paths  to /Game/ConfigObject->PathToLandscapeMatAndTextures/MapName
+		auto MatInst = FVCH_AssetFunctions::CreateMaterialInstance(PathToMInst, Cast<UMaterialInterface>(MaterialSoftPath.LoadSynchronous()));
+		if (MatInst)
+		{
+			MatInst->SetScalarParameterValueEditorOnly(TEXT("LitterOffset"), -LetterIndex);
+			MatInst->SetScalarParameterValueEditorOnly(TEXT("NumericOffset"), -NumericIndex); //- 1???
+			MatInst->PostEditChange();
+			MatInst->MarkPackageDirty();
+			FEditorFileUtils::PromptForCheckoutAndSave({ MatInst->GetPackage() }, true, false);
+			Landscape->LandscapeMaterial = MatInst;
+			FPropertyChangedEvent PropertyChangedEvent(FindFieldChecked<FProperty>(Landscape->GetClass(), FName("LandscapeMaterial")));
+			Landscape->PostEditChangeProperty(PropertyChangedEvent);
+		}
+	};
+
+	IteratedLevelsForLandscape(SetLandMaterial, true);
 }
 

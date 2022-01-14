@@ -14,6 +14,8 @@ public:
 	~FVCH_LandscapeFunctions();
 
 	static void ImpotrLandscapesToNewLevels( FString PathToImportData);
-	static void ImpoertLandscapeProxyToNewLevels(FString PathToImportData);
+	static void ImportLandscapeProxyToNewLevels(FString PathToImportData);
 	static void BackupHeightmaps(FString PathToSave);
+	static void UpdateLandscapeName();
+	static void SetLandscapeMaterial();
 };
