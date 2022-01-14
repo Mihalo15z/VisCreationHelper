@@ -36,4 +36,6 @@ private: // comboBox functions and data
 private:
 	TSharedPtr<SBorder> BorederForContent;
 	TSharedPtr<SComboBox<TSharedPtr<FString> > > SwitchModeComboBox;
+
+	friend struct FVCH_UIRegistrator;
 };

@@ -9,15 +9,68 @@
 #include "Widgets/Input/SComboBox.h"
 #include "VCH_Test.h"
 #include "Widgets/SFoliageModeWidget.h"
+#include <Widgets/SLandscapeModeUI.h>
+#include <Widgets/SPreparationDataModeUI.h>
+
+
+
+
 
 namespace
 {
+	class FBaseUIConstructor
+	{
+	public:
+		virtual TSharedRef<SCompoundWidget> MakeUI() = 0;
+		virtual ~FBaseUIConstructor() {};
+	};
+
+	template<class T>
+	class TUIConstructor : public FBaseUIConstructor
+	{
+	public:
+		virtual  TSharedRef<SCompoundWidget> MakeUI() override
+		{
+			return SNew(T);
+		}
+		virtual ~TUIConstructor<T>() {};
+	};
+
+	template <class T>
+	TUniquePtr<FBaseUIConstructor> MakeUniqueUIConstructor()
+	{
+		return MakeUnique<TUIConstructor<T> >();
+	}
+
+
 	const FString FoliageMode = TEXT("Foliage mode");
 	const FString LandscapeMode = TEXT("Landscape Mode");
 	const FString PreparationDataMode = TEXT("Preparation data mode");
 	const FString TestMode = TEXT("Test Mode");
 
+
+	TMap <FString, TUniquePtr<FBaseUIConstructor> > UIClasses{};
+
 }
+
+struct FVCH_UIRegistrator
+{
+private:
+	SVCH_MainWidget* MainWidget = nullptr;
+public:
+	FVCH_UIRegistrator(SVCH_MainWidget* InMainWidget) :MainWidget(InMainWidget) 
+	{
+		check(MainWidget);
+	}
+	template <class T>
+	void RegistrationUI(const FString& InUI_Name)
+	{
+		MainWidget->VariantSetOptions.Add(MakeShared<FString>(InUI_Name));
+		UIClasses.Add(InUI_Name, (::MakeUniqueUIConstructor<T>()));
+	}
+};
+
+
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SVCH_MainWidget::Construct(const FArguments& InArgs)
@@ -41,11 +94,17 @@ void SVCH_MainWidget::Construct(const FArguments& InArgs)
 		})
 			.Content()
 			[
-				SNew(STextBlock)
-				.Text(this, &SVCH_MainWidget::GetCurrentOptionText)
+				SNew(SBorder)
+				//.ColorAndOpacity(FLinearColor(0.5f, 0.5f, 7.f, 1.f))
+				.ColorAndOpacity(FLinearColor(0.1f, 0.1f, 0.7f, 1.f))
+				.BorderBackgroundColor(FLinearColor(0.1f, 0.1f, 0.7f, 1.f))
+				.ForegroundColor(FLinearColor(0.1f, 0.1f, 0.7f, 1.f))
+				[
+					SNew(STextBlock)
+					.Text(this, &SVCH_MainWidget::GetCurrentOptionText)
+				]
 			]
 			.OnSelectionChanged(this, &SVCH_MainWidget::OnSelectedVariantSetChanged)
-
 		]
 		+ SVerticalBox::Slot()
 		.HAlign(EHorizontalAlignment::HAlign_Fill)
@@ -54,16 +113,24 @@ void SVCH_MainWidget::Construct(const FArguments& InArgs)
 			SAssignNew(BorederForContent, SBorder)
 			.VAlign(EVerticalAlignment::VAlign_Fill)
 			.HAlign(EHorizontalAlignment::HAlign_Fill)
+			.Padding(FMargin(2.f, 20.f, 2.f, 2.f))
 		]
 
 	];
 
+
 	BorederForContent->SetContent(SNew(SFoliageModeWidget));
 	
-	VariantSetOptions.Add(MakeShared<FString>(TEXT("Foliage mode")));
-	VariantSetOptions.Add(MakeShared<FString>(TEXT("Preparation data mode")));
-	VariantSetOptions.Add(MakeShared<FString>(TEXT("Landscape Mode")));
+	FVCH_UIRegistrator UI_Registrator(this);
+	UI_Registrator.RegistrationUI<SFoliageModeWidget>(::FoliageMode);
+	UI_Registrator.RegistrationUI<SLandscapeModeUI>(::LandscapeMode);
+	UI_Registrator.RegistrationUI<SPreparationDataModeUI>(::PreparationDataMode);
+
 	VariantSetOptions.Add(MakeShared<FString>(TEXT("Test Mode")));
+
+	
+	SwitchModeComboBox->SetSelectedItem(VariantSetOptions[0]);
+
 }
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
@@ -86,15 +153,8 @@ FReply SVCH_MainWidget::OnClickTestButton2()
 void SVCH_MainWidget::OnSelectedVariantSetChanged(TSharedPtr<FString> NewItem, ESelectInfo::Type SelectType)
 {
 	CurrentOptionsText = FText::FromString(*NewItem);
-	if (::LandscapeMode == *NewItem)
-	{
 
-	}
-	else if (::FoliageMode == *NewItem)
-	{
-		BorederForContent->SetContent(SNew(SFoliageModeWidget));
-	}
-	else if (::TestMode == *NewItem)
+	if (::TestMode == *NewItem)
 	{
 		BorederForContent->SetContent(
 			SNew(SVerticalBox)
@@ -114,10 +174,12 @@ void SVCH_MainWidget::OnSelectedVariantSetChanged(TSharedPtr<FString> NewItem, E
 				SNew(SButton).OnClicked(this, &SVCH_MainWidget::OnClickTestButton2)
 				.Text(FText::FromString(TEXT("Test Button 2 ")))
 			]);
+		return;
 	}
-	else if (::PreparationDataMode == *NewItem)
-	{
 
+	if (UIClasses.Contains(*NewItem))
+	{
+		BorederForContent->SetContent(UIClasses[*NewItem]->MakeUI());
 	}
 }
 
