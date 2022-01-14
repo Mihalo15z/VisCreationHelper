@@ -42,11 +42,7 @@ UTexture* FVCH_AssetFunctions::ImportTextureForLandscape(const FString& Name, co
 			return nullptr;
 		}
 		ImportedTexture = (ImportedAssets.Num() > 0) ? Cast<UTexture>(ImportedAssets[0]) : nullptr;
-		auto Texture2d = Cast<UTexture2D>(ImportedTexture);
-		//if (Texture2d)
-		//{
-		//	// to do :  add texture settings
-		//}
+		ApplyTextureParams(ImportedTexture);
 	}
 	return ImportedTexture;
 }
@@ -101,7 +97,7 @@ void FVCH_AssetFunctions::ApplyTextureParams(UTexture * Texture)
 	auto Texture2d = Cast<UTexture2D>(Texture);
 	if (Texture2d)
 	{
-		Texture2d->bNoTiling = true;
+		//Texture2d->bNoTiling = true;
 		//Texture2d->
 		// to do :  add texture settings
 	}
@@ -141,7 +137,7 @@ TArray<FAssetData> FVCH_AssetFunctions::GetAssetsByPath(const FString & InPath)
 	return MoveTemp(Assets);
 }
 
-void FVCH_AssetFunctions::SetTexturesForLandMaterials(const FString& PathToMats, const FString& ParametrName, const FString& SuffixStr, const FString& ImportPath)
+void FVCH_AssetFunctions::SetTexturesForLandMaterials(const FString& PathToMats, const FString& ParametrName, const FString& ImportPath)
 {
 	auto AssetsData = GetAssetsByPath(PathToMats + TEXT("/Materials"));
 	FString PathToTextures = PathToMats + TEXT("/Textures");
@@ -157,7 +153,8 @@ void FVCH_AssetFunctions::SetTexturesForLandMaterials(const FString& PathToMats,
 				MatInst->SetTextureParameterValueEditorOnly(FName(ParametrName), Texture);
 				MatInst->PostEditChange();
 				MatInst->MarkPackageDirty();
-				FEditorFileUtils::PromptForCheckoutAndSave({ MatInst->GetPackage() }, true, false);
+				FEditorFileUtils::PromptForCheckoutAndSave({ MatInst->GetPackage(), Texture->GetPackage() }, true, false);
+				CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 			}
 		}
 	}

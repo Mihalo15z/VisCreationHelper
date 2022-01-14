@@ -20,7 +20,7 @@ public:
 
 private:
 
-	FReply SetTexturesForLandscapeMaterials();
+	FReply OnSetTexturesForLandscapeMaterialsCleck();
 
 	FString TetureParamNamen;
 };

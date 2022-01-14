@@ -24,5 +24,5 @@ public:
 	static void ApplyTextureParams(UTexture* Texture);
 	static UMaterialInstanceConstant* CreateMaterialInstance(const FString& PathToImport, UMaterialInterface* ParentMaterial);
 	static TArray<FAssetData> GetAssetsByPath(const FString& InPath);
-	static void SetTexturesForLandMaterials(const FString& PathToMats, const FString& ParametrName, const FString& SuffixStr, const FString& ImportPath);
+	static void SetTexturesForLandMaterials(const FString& PathToMats, const FString& ParametrName, const FString& ImportPath);
 };

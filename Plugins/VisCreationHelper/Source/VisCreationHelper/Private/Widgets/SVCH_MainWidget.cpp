@@ -11,6 +11,7 @@
 #include "Widgets/SFoliageModeWidget.h"
 #include <Widgets/SLandscapeModeUI.h>
 #include <Widgets/SPreparationDataModeUI.h>
+#include "Widgets/SAssetsUI.h"
 
 
 
@@ -47,6 +48,7 @@ namespace
 	const FString LandscapeMode = TEXT("Landscape Mode");
 	const FString PreparationDataMode = TEXT("Preparation data mode");
 	const FString TestMode = TEXT("Test Mode");
+	const FString AssetMode = TEXT("Asset Mode");
 
 
 	TMap <FString, TUniquePtr<FBaseUIConstructor> > UIClasses{};
@@ -125,6 +127,7 @@ void SVCH_MainWidget::Construct(const FArguments& InArgs)
 	UI_Registrator.RegistrationUI<SFoliageModeWidget>(::FoliageMode);
 	UI_Registrator.RegistrationUI<SLandscapeModeUI>(::LandscapeMode);
 	UI_Registrator.RegistrationUI<SPreparationDataModeUI>(::PreparationDataMode);
+	UI_Registrator.RegistrationUI<SAssetsUI>(::AssetMode);
 
 	VariantSetOptions.Add(MakeShared<FString>(TEXT("Test Mode")));
 
