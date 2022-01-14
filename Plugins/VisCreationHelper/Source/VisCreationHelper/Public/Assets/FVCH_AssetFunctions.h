@@ -19,6 +19,10 @@ public:
 	~FVCH_AssetFunctions();
 
 
-	static UTexture* ImportTextureForLandscape(FString Name, FString Path, FString SavePath);
-	static UMaterialInstanceConstant* CreateMaterialInstance(FString PathToImport, UMaterialInterface* ParentMaterial);
+	static UTexture* ImportTextureForLandscape(const FString& Name, const FString& Path, const FString& SavePath);
+	static void ImportTextures(const FString& Path, const FString& SavePath, const FString& SuffixStr = TEXT(""), int32 NumSaveTextures = 10);
+	static void ApplyTextureParams(UTexture* Texture);
+	static UMaterialInstanceConstant* CreateMaterialInstance(const FString& PathToImport, UMaterialInterface* ParentMaterial);
+	static TArray<FAssetData> GetAssetsByPath(const FString& InPath);
+	static void SetTexturesForLandMaterials(const FString& PathToMats, const FString& ParametrName, const FString& SuffixStr, const FString& ImportPath);
 };
