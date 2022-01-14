@@ -7,8 +7,10 @@ DECLARE_LOG_CATEGORY_CLASS(VCH_EncoderNameLog, Log, All);
 
 const  FString FNameEncoder::NumberChar = TEXT("0123456789-");
 const FString FNameEncoder::Alphabet =  TEXT("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+const FString FNameEncoder::XStr = TEXT("_x");
+const FString FNameEncoder::YStr = TEXT("_y");
 
-FNameEncoder::FNameEncoder(FString InMask, TCHAR InLetterSymbol, TCHAR InNumberSymbol):Mask(InMask), LetterSymbol(InLetterSymbol), NumericSymbol(InNumberSymbol)
+FNameEncoder::FNameEncoder(const FString& InMask, TCHAR InLetterSymbol, TCHAR InNumberSymbol):Mask(InMask), LetterSymbol(InLetterSymbol), NumericSymbol(InNumberSymbol)
 {
 	ParseMask();
 }
@@ -62,7 +64,7 @@ void FNameEncoder::ParseMask()
 	bValid = true;
 }
 
-bool FNameEncoder::GetIndeces(const FString InName, int32& OutLetterIndex, int32& OutNumericIndex) const
+bool FNameEncoder::GetIndeces(const FString& InName, int32& OutLetterIndex, int32& OutNumericIndex) const
 {
 	if (!CheckName(InName))
 	{
@@ -122,6 +124,46 @@ FString FNameEncoder::GetName(int32 InLetterIndex, int32 InNumericIndex) const
 	name.ReplaceInline((LetterBlock.GetCharArray().GetData()), LetterIndex.GetData());
 	name.ReplaceInline((NumericBlock.GetCharArray().GetData()), NumericIndex.GetData());
 	return name;
+}
+
+FString FNameEncoder::GetLetterStr(const FString& InName) const
+{
+	return InName.Mid(StartLetterIndex, LenLetterIndex);
+}
+
+FString FNameEncoder::GetNumericStr(const FString& InName) const
+{
+	return InName.Mid(StartNumericIndex, LenNumericIndex);
+}
+
+FString FNameEncoder::FromXYName(const FString & InName)
+{
+	int32 XPosition = InName.Find(XStr);
+	int32 YPosition = InName.Find(YStr);
+	// check extension
+ 	int32 PointIndex = -1;
+	if(!InName.FindChar(TEXT('.'), PointIndex))
+	{
+		PointIndex = InName.Len();
+	}
+	int32 X = FCString::Atoi(*InName.Mid(XPosition + 2, YPosition));
+	int32 Y = FCString::Atoi(*InName.Mid(YPosition + 2, PointIndex));
+
+	// Y - LetterIndex, X - NumericIndex
+	return GetName(Y, X);
+}
+
+FString FNameEncoder::ToXYName(const FString & InName)
+{
+	int32 LetterIndex, NumericIndex;
+	GetIndeces(InName, LetterIndex, NumericIndex);
+	return FString::Printf(TEXT("%s_x%d_y%d"), *GetLetterStr(InName), NumericIndex, LetterIndex);
+}
+
+FString FNameEncoder::MakeXYNameByIndexes(int32 X, int32 Y)
+{
+	UE_LOG(VCH_EncoderNameLog, Error, TEXT("Not Testing Function"));
+	return ToXYName(GetName(Y, X));
 }
 
 bool FNameEncoder::CheckName(FString InName) const

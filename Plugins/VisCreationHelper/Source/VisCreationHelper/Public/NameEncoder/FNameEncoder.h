@@ -11,7 +11,7 @@
 class VISCREATIONHELPER_API FNameEncoder
 {
 public:
-	FNameEncoder(FString InMask, TCHAR InLetterSymbol = '@', TCHAR InNumberSymbol = '#');
+	FNameEncoder(const FString& InMask, TCHAR InLetterSymbol = '@', TCHAR InNumberSymbol = '#');
 	~FNameEncoder();
 	FNameEncoder(const FNameEncoder& Other) = delete;
 private:
@@ -29,6 +29,8 @@ private:
 	// static data
 	static const FString NumberChar;
 	static const FString Alphabet;
+	static const FString XStr;
+	static const FString YStr;
 	static constexpr int32 AlphabetLen = 26;
 	static constexpr int32 NumberLen = 10;
 
@@ -38,9 +40,16 @@ private:
 
 public:
 	//  Get Indexes from name
-	bool GetIndeces(const FString InName, int32& OutLetterIndex, int32& OutNumericIndex) const;
+	bool GetIndeces(const FString& InName, int32& OutLetterIndex, int32& OutNumericIndex) const;
 	// Get name from Indexes
 	FString GetName(int32 InLetterIndex, int32 InNumericIndex) const;
+
+	FString GetLetterStr(const FString& InName) const;
+	FString GetNumericStr(const FString& InName) const;
+
+	FString FromXYName(const FString& InName);
+	FString ToXYName(const FString& InName);
+	FString MakeXYNameByIndexes(int32 X, int32 Y);
 
 	bool CheckName(FString InName) const;
 	bool IsValid() const
