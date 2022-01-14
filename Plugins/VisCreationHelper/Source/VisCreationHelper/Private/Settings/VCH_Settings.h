@@ -32,6 +32,10 @@ public:
 		int32 NumSubsections = 2; //  make enum
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Landscape")
 		ELandscapeImportMode ImportMode = ELandscapeImportMode::Landscape;
+	UPROPERTY(Config, EditDefaultsOnly, Category = "Landscape")
+		int32 CorrectHMapValue = 1352;
+	UPROPERTY(Config, EditDefaultsOnly, Category = "Landscape")
+		FString LandscapePrefixName = TEXT("LSP");
 	/*
 	(const FGuid& InGuid,
 	int32 InMinX =  0,
@@ -104,6 +108,8 @@ public:
 		FString GeoConfigFieName = TEXT("GeoData.txt");
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Import|Config")
 		FString LandConfigName = TEXT("land.xml");
+	UPROPERTY(Config, EditDefaultsOnly, Category = "Import|Paths")
+		FString GlobalImportContentDir = TEXT("_ImportData");
 
 	int32 GetFinalResolution()const
 	{
