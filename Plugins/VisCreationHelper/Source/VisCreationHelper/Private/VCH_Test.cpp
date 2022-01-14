@@ -10,6 +10,7 @@
 #include "Assets/FVCH_AssetFunctions.h"
 #include "Async/ParallelFor.h"
 #include "Foliage/FVCH_FoliageFunctions.h"
+#include "PerfomanceStats/VCHTimerCounter.h"
 
 
 //DECLARE_LOG_CATEGORY_EXTERN(VCH_TestLog, Log, All);
@@ -123,10 +124,10 @@ FString FVCH_Test::GlobalTest()
 	//TestLevelsCoords();
 	//TestWorkForHeightmaps();
 
-	//TestEncoderName();
+	TestEncoderName();
 
 	//TestImportLandscape();
-	TestExportHeigmaps();
+	//TestExportHeigmaps();
 
 	//TestImportTextureForLandscape();
 
@@ -378,7 +379,7 @@ FString FVCH_Test::TestWorkForHeightmaps()
 
 	uint16 MinH, MaxH;
 	FVCH_PreparationDataFunctions::GetMinMaxForHeightmaps(HeightmapsMap, MinH, MaxH);
-	FVCH_PreparationDataFunctions::CorrectHMapsRange(HeightmapsMap, MinH, MaxH, 1352);
+	FVCH_PreparationDataFunctions::CorrectHMapsRange(HeightmapsMap, 1352);
 
 	if (FVCH_PreparationDataFunctions::CheckHeightmaps(HeightmapsMap, SettingsObject->GetFinalResolution(), SettingsObject->NameMask))
 	{
@@ -397,10 +398,13 @@ FString FVCH_Test::TestWorkForHeightmaps()
 FString FVCH_Test::TestEncoderName()
 {
 	FNameEncoder Encoder(TEXT("Ad@@##"), '@', '#');
-	auto NameTestMask = Encoder.GetName(43, 64);
+	FString NameTestMask = Encoder.GetName(43, 64);
+	FString NameXYTest = Encoder.ToXYName(NameTestMask);
+	FString NameFromXY = Encoder.FromXYName(NameXYTest);
 	int32 X = -1, Y = -1;
 	Encoder.GetIndeces(NameTestMask, X, Y);
 	UE_LOG(VCH_TestLog, Log, TEXT("Name  = %s,  X = %i, Y = %i"), *NameTestMask, X, Y);
+	UE_LOG(VCH_TestLog, Log, TEXT("NameXY  = %s,  NameFromXY = %s"), *NameXYTest, *NameFromXY);
 	UE_LOG(VCH_TestLog, Log, TEXT("Name  = %s,  X = %i, Y = %i"), *Encoder.GetName(0, 0), 0, 0);
 	NameTestMask = TEXT("AdFG34");
 	Encoder.GetIndeces(NameTestMask, X, Y);
@@ -412,7 +416,7 @@ FString FVCH_Test::TestImportLandscape()
 {
 	FString Path = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + TEXT("_ImportData");
 	//FVCH_LandscapeFunctions::ImpotrLandscapesToNewLevels(Path);
-	FVCH_LandscapeFunctions::ImpoertLandscapeProxyToNewLevels(Path);
+	FVCH_LandscapeFunctions::ImportLandscapeProxyToNewLevels(Path);
 
 	return FString();
 }
@@ -430,7 +434,7 @@ FString FVCH_Test::TestImportTextureForLandscape()
 	auto SettingsObject = GetDefault<UVCH_Settings>();
 	FString TextureName("BYAV23");
 	FString PathToSave("/Game/Textures");
-	FString PathToTexture = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + TEXT("_ImportData/") + SettingsObject->TexturesDir + TEXT("/BYAV23.png");
+	FString PathToTexture = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + TEXT("_ImportData/") + SettingsObject->TexturesDir;
 
 	auto Texture = FVCH_AssetFunctions::ImportTextureForLandscape(TextureName, PathToTexture, PathToSave);
 	if (Texture != nullptr)
@@ -460,12 +464,3 @@ FString FVCH_Test::TestClearAllIFA()
 	return FString();
 }
 
-FVCHTimeConter::FVCHTimeConter(const FString & InCounterInfo) :CounterInfo(InCounterInfo)
-{
-	StartCicles = FPlatformTime::Cycles();
-}
-
-FVCHTimeConter::~FVCHTimeConter()
-{
-	UE_LOG(VCH_TestLog, Log, TEXT("%s: time = %f"), *CounterInfo, FPlatformTime::ToMilliseconds(FPlatformTime::Cycles() - StartCicles));
-}
