@@ -18,19 +18,21 @@ public:
 	~FVCH_PreparationDataFunctions();
 	// make all preparations
 	//static void PreparationImportData(FString Path);
-	static HeightmapDataMap GetAllHeightmaps(FString Path, int32 Resolution);
-	static TArray<uint16> LoadHeightmap(FString Path, int32 Resolution);
-	static TArray<FString> GetLevelNames(FString Path);
+	static HeightmapDataMap GetAllHeightmaps(const FString& Path, int32 Resolution);
+	static TArray<uint16> LoadHeightmap(const FString& Path, int32 Resolution);
+	static TArray<FString> GetLevelNames(const FString& Path);
 	//static void CheckMapFiles(FString Path);
-	static LevelImportedDataMap GeneratedImportDataTables(FString PathToLandXml);
-	static void RemoveCrackForHeightmaps(HeightmapDataMap& HeightMaps, FString Mask, int32 Resolution);
+	static LevelImportedDataMap GeneratedImportDataTables(const FString& PathToLandXml);
+	static void RemoveCrackForHeightmaps(HeightmapDataMap& HeightMaps, const FString& Mask, int32 Resolution);
 	static void GetMinMaxForHeightmaps(const HeightmapDataMap& HeightMaps, uint16& OutMin, uint16& OutMax);
-	static void CorrectHMapsRange(HeightmapDataMap& HeightMaps, uint16 InMin, uint16 InMax, uint32 StableRange = 65'536);
-	static void SaveHeightMaps(const HeightmapDataMap& HeightMaps, FString PathToSave);
-	static bool CheckHeightmaps(const HeightmapDataMap& HeightMaps, int32 Resolution, FString Mask);
+	static void CorrectHMapsRange(HeightmapDataMap& HeightMaps, uint32 StableRange = 65'535);
+	static void SaveHeightMaps(const HeightmapDataMap& HeightMaps, const FString& PathToSave);
+	static bool CheckHeightmaps(const HeightmapDataMap& HeightMaps, int32 Resolution, const FString& Mask);
 	//static double CalculateLevelSize(LevelImportedDataMap MapsData);
-	static void MakeXMlForMapFiles(FString Path, FString LandFileName);
+	static void MakeXMlForMapFiles(const FString& Path, const FString& LandFileName);
 	//static void MakeXMLForForestGenerator(FString Path);
 	static TArray64<uint8> LoadImage(const FString& Path);
+	static void CopyAndRenameHMaps(const FString& HMapPath, const FString& SavePath, const FString& Mask);
+	static void GetOffsetAndScale(const FString & PathToLandXML, const FString & ZeroLevelName, const FString & Mask, const double& GeoScale, const double& HeightFactor, const double& LandSize, int32 Resolutinon, FIntPoint & OutOffset, FVector & OutScale);
 
 };

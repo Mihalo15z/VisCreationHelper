@@ -24,7 +24,7 @@ FVCH_PreparationDataFunctions::~FVCH_PreparationDataFunctions()
 {
 }
 
-HeightmapDataMap FVCH_PreparationDataFunctions::GetAllHeightmaps(FString Path, int32 Resolution)
+HeightmapDataMap FVCH_PreparationDataFunctions::GetAllHeightmaps(const FString& Path, int32 Resolution)
 {
 	HeightmapDataMap Result;
 	TArray<FString>  HeightmapNames;
@@ -47,7 +47,7 @@ HeightmapDataMap FVCH_PreparationDataFunctions::GetAllHeightmaps(FString Path, i
 	return Result;
 }
 
-TArray<uint16> FVCH_PreparationDataFunctions::LoadHeightmap(FString Path, int32 Resolution)
+TArray<uint16> FVCH_PreparationDataFunctions::LoadHeightmap(const FString& Path, int32 Resolution)
 {
 	TArray<uint16> Data;
 	TArray<uint8> ImportData;
@@ -70,7 +70,7 @@ TArray<uint16> FVCH_PreparationDataFunctions::LoadHeightmap(FString Path, int32 
 	return TArray<uint16>();
 }
 
-TArray<FString> FVCH_PreparationDataFunctions::GetLevelNames(FString Path)
+TArray<FString> FVCH_PreparationDataFunctions::GetLevelNames(const FString& Path)
 {
 	TArray<FString>  Result;
 	
@@ -88,7 +88,7 @@ TArray<FString> FVCH_PreparationDataFunctions::GetLevelNames(FString Path)
 	return MoveTemp(Result);
 }
 
-LevelImportedDataMap FVCH_PreparationDataFunctions::GeneratedImportDataTables(FString Path)
+LevelImportedDataMap FVCH_PreparationDataFunctions::GeneratedImportDataTables(const FString& Path)
 {
 	FXmlFile LandFile;
 	if(!LandFile.LoadFile(Path))
@@ -126,7 +126,7 @@ LevelImportedDataMap FVCH_PreparationDataFunctions::GeneratedImportDataTables(FS
 	return Result;
 }
 
-void FVCH_PreparationDataFunctions::RemoveCrackForHeightmaps(HeightmapDataMap& HeightMaps, FString Mask, int32 Resolution)
+void FVCH_PreparationDataFunctions::RemoveCrackForHeightmaps(HeightmapDataMap& HeightMaps, const FString& Mask, int32 Resolution)
 {
 	FNameEncoder Encoder(Mask);
 	if (!Encoder.IsValid())
@@ -235,7 +235,6 @@ void FVCH_PreparationDataFunctions::GetMinMaxForHeightmaps(const HeightmapDataMa
 	{
 		uint16 MinValue = 65'535;
 		uint16 MaxValue = 0;
-		//TempMinMax() :MinValue(65'535), MaxValue(0) {};
 	};
 	TArray<TempMinMax> MinMaxValues;
 	MinMaxValues.AddDefaulted(HeightMaps.Num());
@@ -250,7 +249,7 @@ void FVCH_PreparationDataFunctions::GetMinMaxForHeightmaps(const HeightmapDataMa
 			if (Value > MinMaxValues[index].MaxValue)
 				MinMaxValues[index].MaxValue = Value;
 		}
-		UE_LOG(VCH_PrepDataLog, Error, TEXT("Min = %i, Max = %i for %s "), MinMaxValues[index].MinValue, MinMaxValues[index].MaxValue,*Keys[index]);
+		UE_LOG(VCH_PrepDataLog, Display, TEXT("Min = %i, Max = %i for %s "), MinMaxValues[index].MinValue, MinMaxValues[index].MaxValue,*Keys[index]);
 	}/*, EParallelForFlags::ForceSingleThread*/);
 
 	OutMin = 65'535;
@@ -265,33 +264,30 @@ void FVCH_PreparationDataFunctions::GetMinMaxForHeightmaps(const HeightmapDataMa
 	UE_LOG(VCH_PrepDataLog, Warning, TEXT("Min = %i, Max = %i for Height "), OutMin, OutMax);
 }
 
-void FVCH_PreparationDataFunctions::CorrectHMapsRange(HeightmapDataMap & HeightMaps, uint16 InMin, uint16 InMax, uint32 StableRange)
+void FVCH_PreparationDataFunctions::CorrectHMapsRange(HeightmapDataMap & HeightMaps, uint32 StableRange)
 {
 	constexpr uint16 MaxValue = 65'535;
 	constexpr uint16 MediumValue = 65'536 / 2 - 1;
-	constexpr uint16 StableCoof = 65'536 / 4 - 1; 
 	constexpr double MedV = 65'536 / 2;
-	if (InMax > MediumValue)
+	if (StableRange > MediumValue)
 	{
 		UE_LOG(VCH_PrepDataLog, Warning, TEXT("Hright Stable "));
 		return;
 	}
-	double CurrentRange = InMax - InMin;
-	//  test this!!!
-	double Coof = static_cast<double>(MediumValue) / static_cast<double>(InMax);
+
+	double Coof = static_cast<double>(MediumValue) / static_cast<double>(StableRange);
 	TArray<FString> Keys;
 	auto numH = HeightMaps.GetKeys(Keys);
-	ParallelFor(HeightMaps.Num(), [&HeightMaps, &Keys, Coof, StableCoof, MedV](int32 index)
+	ParallelFor(HeightMaps.Num(), [&HeightMaps, &Keys, Coof, MedV](int32 index)
 	{
 		for (auto& Value : HeightMaps[Keys[index]])
 		{
 			Value = static_cast<uint16>(static_cast<double>(Value) * Coof + MedV);
-			//Value = static_cast<uint16>(static_cast<double>(Value + 1) * Coof + MedV);
 		}
 	});
 }
 
-void FVCH_PreparationDataFunctions::SaveHeightMaps(const HeightmapDataMap & HeightMaps, FString PathToSave)
+void FVCH_PreparationDataFunctions::SaveHeightMaps(const HeightmapDataMap & HeightMaps, const FString& PathToSave)
 {
 	for (const auto& HeightData : HeightMaps)
 	{
@@ -302,7 +298,7 @@ void FVCH_PreparationDataFunctions::SaveHeightMaps(const HeightmapDataMap & Heig
 	}
 }
 
-bool FVCH_PreparationDataFunctions::CheckHeightmaps(const HeightmapDataMap& HeightMaps, int32 Resolution, FString Mask)
+bool FVCH_PreparationDataFunctions::CheckHeightmaps(const HeightmapDataMap& HeightMaps, int32 Resolution, const FString& Mask)
 {
 	FNameEncoder Encoder(Mask);
 	if (!Encoder.IsValid())
@@ -362,12 +358,7 @@ bool FVCH_PreparationDataFunctions::CheckHeightmaps(const HeightmapDataMap& Heig
 	return bHasError;
 }
 
-//double FVCH_PreparationDataFunctions::CalculateLevelSize(LevelImportedDataMap MapsData)
-//{
-//	return 0.0;
-//}
-
-void FVCH_PreparationDataFunctions::MakeXMlForMapFiles(FString Path, FString LandFileName)
+void FVCH_PreparationDataFunctions::MakeXMlForMapFiles(const FString& Path, const FString& LandFileName)
 {
 	TArray<FString>  Result;
 
@@ -443,32 +434,72 @@ TArray64<uint8> FVCH_PreparationDataFunctions::LoadImage(const FString& Path)
 	return data;
 }
 
-//void FVCH_PreparationDataFunctions::MakeXMLForForestGenerator(FString Path)
-//{
-//		FString Result;
-//		Result.Append("<?xml version=\"1.0\" encoding = \"Windows-1252\"?>\n\t<Data>\n\t<Levels>\n");
-//		for (auto level : GWorld->GetLevels())
-//		{
-//			GWorld->SetCurrentLevel(level);
-//			//ALandscapeProxy* landscape(nullptr);
-//			//landscape = nullptr; // GetLandscapeOfCurrentLevel();
-//
-//			//if(landscape)
-//			//{
-//			//	Result.Append("\t\t<info name=\"" + landscape->GetActorLabel() + "\" ");
-//			//	FVector origen;
-//			//	FVector bound;
-//			//	landscape->GetActorBounds(true, origen, bound);
-//			//	Result.Append(" origin=\"" + origen.ToString());
-//			//	Result.Append("\" bound=\"" + bound.ToString());
-//			//	Result.Append("\" location=\"" + landscape->GetActorLocation().ToString());
-//			//	Result.Append("\" />\n");
-//			//}
-//		}
-//		Result.Append("\t</Levels>\n</Data>");
-//		//FString Path = FPaths::ProjectContentDir() + "backupXML/" + "InfoLevels.xml";
-//		FFileHelper::SaveStringToFile(Result, *Path);
-//	
-//}
+void FVCH_PreparationDataFunctions::CopyAndRenameHMaps(const FString& HMapPath, const FString& SaveDir, const FString& Mask)
+{
+	//FFileSystem::CopyFile()
+	FNameEncoder Encoder(Mask);
+
+	FString SavePath = HMapPath / SaveDir;
+	auto& FileManager = IFileManager::Get();
+	if (!FileManager.DirectoryExists(*HMapPath))
+	{
+		FileManager.MakeDirectory(*SavePath);
+	}
+
+	TArray<FString>  HeightmapNames;
+
+	if (FileManager.DirectoryExists(*HMapPath))
+	{
+		FString Filter = TEXT(".raw");
+		FString MaskFound = HMapPath + TEXT("/*") + Filter;
+		FileManager.FindFiles(HeightmapNames, *MaskFound, true, false);
+
+		for (const auto& FileName : HeightmapNames)
+		{
+			FString LevelName = FileName.Replace(*Filter, TEXT(""));
+			if (Encoder.CheckName(LevelName))
+			{
+				FString NewFileName = Encoder.ToXYName(LevelName) + Filter;
+				auto Status = FileManager.Copy( *(SavePath / NewFileName), *(HMapPath / FileName), true, true, true);
+				if (Status != ECopyResult::COPY_OK)
+				{
+					UE_LOG(VCH_PrepDataLog, Error, TEXT("Copy status %i ,  file:%s "), Status, *FileName);
+				}
+				
+			}
+		}
+	}
+}
+
+void FVCH_PreparationDataFunctions::GetOffsetAndScale(
+	const FString & PathToLandXML,
+	const FString & ZeroLevelName,
+	const FString & Mask,
+	const double& GeoScale,
+	const double& HeightFactor,
+	const double& LandSize,
+	int32 Resolutinon,
+	FIntPoint & OutOffset,
+	FVector & OutScale)
+{
+	const double LevelSize = LandSize * GeoScale * 100.0;
+	double ResolutionLand = Resolutinon * 2.0;
+	OutScale = FVector(LevelSize / ResolutionLand, LevelSize / ResolutionLand, (HeightFactor / 256.0) * 100.0);
+	
+	FXmlFile LandFile;
+	if (!LandFile.LoadFile(PathToLandXML))
+	{
+		UE_LOG(VCH_PrepDataLog, Warning, TEXT("Don't open file %s"), *PathToLandXML);
+		return;
+	}
+
+	auto RootNode = LandFile.GetRootNode();
+	//auto ZeroLevelNode = RootNode->FindChildNode(ZeroLevelName);
+	//for()
+
+
+	UE_LOG(VCH_PrepDataLog, Error, TEXT("Offset %s ,  Scale:%s "), *OutOffset.ToString(), *OutScale.ToString());
+}
+
 
 
