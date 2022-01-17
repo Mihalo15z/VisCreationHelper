@@ -14,8 +14,6 @@ void SFoliageModeWidget::Construct(const FArguments& InArgs)
 	[
 		SNew(SVerticalBox)
 		+SVerticalBox::Slot()
-		.HAlign(EHorizontalAlignment::HAlign_Left)
-		.VAlign(EVerticalAlignment::VAlign_Top)
 		.AutoHeight()
 		[
 			SNew(SButton)
@@ -23,24 +21,25 @@ void SFoliageModeWidget::Construct(const FArguments& InArgs)
 			.OnClicked(this, &SFoliageModeWidget::OnPlaceForestClick)
 		]
 		+ SVerticalBox::Slot()
-		.HAlign(EHorizontalAlignment::HAlign_Left)
-		.VAlign(EVerticalAlignment::VAlign_Top)
 		.AutoHeight()
 		[
 			SNew(SButton)
 			.Text(FText::FromString(TEXT("Clear All IFAs")))
 			.OnClicked(this, &SFoliageModeWidget::OnClearAllIFAClick)
 		]
-		// Populate the widget
 	];
-	
 }
+END_SLATE_FUNCTION_BUILD_OPTIMIZATION
+
+
 FReply SFoliageModeWidget::OnPlaceForestClick()
 {
 	auto SettingsObject = GetDefault<UVCH_Settings>();
-	FString PathToforestMask = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + TEXT("_ImportData/Forest");
-	FString PathToHeightmaps = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + TEXT("_ImportData/") + SettingsObject->HeightmapsDir;
-	FString PathToWaterMask = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + TEXT("_ImportData/") + SettingsObject->WaterMasksDir;
+	check(SettingsObject);
+	FString ImportPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + SettingsObject->GlobalImportContentDir;
+	FString PathToforestMask = ImportPath / SettingsObject->FoliageMasksDir;
+	FString PathToHeightmaps = ImportPath / SettingsObject->HeightmapsDir;
+	FString PathToWaterMask = ImportPath / SettingsObject->WaterMasksDir;
 	FVCH_FoliageFunctions::GenerateForest(PathToHeightmaps, PathToforestMask, PathToWaterMask);
 	return FReply::Handled();
 }
@@ -49,4 +48,4 @@ FReply SFoliageModeWidget::OnClearAllIFAClick()
 	FVCH_FoliageFunctions::ClearAllIFA();
 	return FReply::Handled();
 }
-END_SLATE_FUNCTION_BUILD_OPTIMIZATION
+

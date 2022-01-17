@@ -20,10 +20,11 @@ void SLandscapeModeUI::Construct(const FArguments& InArgs)
 	ChildSlot
 	[
 		SNew(SVerticalBox)
-		+SVerticalBox::Slot().AutoHeight()
-		[
-			MakeButton(&SLandscapeModeUI::OnImportLandscapePrxyClick, TEXT("Import Landscape Prxy"))
-		]
+		// not correct work
+		//+SVerticalBox::Slot().AutoHeight()
+		//[
+		//	MakeButton(&SLandscapeModeUI::OnImportLandscapePrxyClick, TEXT("Import Landscape Prxy"))
+		//]
 		+ SVerticalBox::Slot().AutoHeight()
 		[
 			MakeButton(&SLandscapeModeUI::OnImportLandscapeClick, TEXT("Import Landscape"))

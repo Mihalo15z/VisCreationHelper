@@ -23,8 +23,7 @@ void SAssetsUI::Construct(const FArguments& InArgs)
 		.AutoHeight()
 		[
 			MakeButton(&SAssetsUI::OnSetTexturesForLandscapeMaterialsCleck, TEXT("Set Textures For Landscape Materials"))
-		]
-		
+		]	
 	];
 		
 	
@@ -33,6 +32,7 @@ END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 FReply SAssetsUI::OnSetTexturesForLandscapeMaterialsCleck()
 {
+	// TO DO : Add ComboBox for other type textures
 	auto SettingsObject = GetDefault<UVCH_Settings>();
 	check(SettingsObject);
 	FString ImportPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + SettingsObject->GlobalImportContentDir / SettingsObject->TexturesDir;

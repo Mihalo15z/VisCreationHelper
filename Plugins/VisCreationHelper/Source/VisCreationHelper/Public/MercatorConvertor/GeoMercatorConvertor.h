@@ -74,7 +74,7 @@ private:
 		double Phi( HalfPI - 2.0 * atan(ts));
 
 		double con, dphi;
-		// Faster 770+
+		// 770+ times faster
 		CalcDPhi(con, dphi, Phi, ts) 		 
 			&& CalcDPhi(con, dphi, Phi, ts) 
 			&& CalcDPhi(con, dphi, Phi, ts) 

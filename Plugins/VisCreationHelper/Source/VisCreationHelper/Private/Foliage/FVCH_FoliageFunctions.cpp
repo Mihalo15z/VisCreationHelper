@@ -39,7 +39,6 @@ InstanceParams::InstanceParams(const FVCHMeshData & InMeshData, const TArray<FTr
 	MaxDrawDistance = InMeshData.MaxCoolDistance;
 	MinDrawDistance = InMeshData.MinCoolDistance;
 	CollisionProfileName = FName(TEXT("BlockAllDynamic"));
-	//ECollisionEnabled CollisionEnabled =/* (ECollisionEnabled::QueryOnly)*/;
 	CollisionEnabledType = InMeshData.CollisionType;
 	bCastDynamicShadow = InMeshData.bCastShadow/*= true*/;
 	bCastStaticShadow = false;
@@ -253,38 +252,6 @@ void FVCH_FoliageFunctions::GenerateForest(const FString& HeightmapsPath, const 
 						Inst.Rotation = FRotator(0.f, FMath::FRandRange(0.f, 180.f), 0.f);
 					}
 					SelecForestData.Instances.Add(Inst);
-
-					//FVector StartPosition = Landscape->GetActorLocation() + FVector(x + DeltaX, y + DeltaY, 1'000'000.f);
-					//FVector EndPosition = StartPosition - EndOffset;
-					//FHitResult Hit;
-					//if (WorldPtr->LineTraceSingleByChannel(Hit, StartPosition, EndOffset, ECollisionChannel::ECC_Visibility))
-					//{
-					//	if (!Hit.Actor->IsA(ALandscapeProxy::StaticClass()))
-					//	{
-					//		continue;
-					//	}
-
-
-					//	float ScaleInst = FMath::RandRange(SelecForestData.Params.MinScale, SelecForestData.Params.MaxScale);
-
-					//	FFoliageInstance Inst;
-					//	Inst.BaseComponent = Hit.GetComponent();
-					//	Inst.Location = Hit.Location;
-					//	Inst.DrawScale3D = FVector(ScaleInst);
-
-					//	if (SelecForestData.Params.bRandomRotation)
-					//	{
-					//		Inst.Rotation = FRotator(0.f, FMath::FRandRange(0.f, 180.f), 0.f);
-					//	}
-
-					//	SelecForestData.Instances.Add(Inst);
-					//	//SelecForestData.InstancesTrasfom.Add(InstanceTransform);
-					//}
-					//else
-					//{
-					//	// to do : miss
-					//	++MissCounter;
-					//}
 				}
 			}
 
@@ -363,14 +330,4 @@ void AddForestInstancesToIFA(const FForestDataArray& ForestData, AInstancedFolia
 	IFA->DetectFoliageTypeChangeAndUpdate();
 }
 
-//##### MakeForest ######
-
-// load forest texture
-
-//	make forest Data
-// calculate trasform(x, y), scael
-
-//Calculate z(  raw  or linetrace)
-
-// Add instances in IFA
 

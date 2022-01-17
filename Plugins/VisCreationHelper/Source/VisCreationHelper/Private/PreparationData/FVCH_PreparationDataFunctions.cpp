@@ -57,7 +57,6 @@ TArray<uint16> FVCH_PreparationDataFunctions::LoadHeightmap(const FString& Path,
 		ImportData.Num() == SqResolution * 2)
 	{
 		Data.AddUninitialized(SqResolution);
-		//FMemory::Memcpy(Data.GetData(), ImportData.GetData(), ImportData.Num());
 		FMemory::Memmove(Data.GetData(), ImportData.GetData(), ImportData.Num());
 		return MoveTemp(Data);
 	}
@@ -266,9 +265,9 @@ void FVCH_PreparationDataFunctions::GetMinMaxForHeightmaps(const HeightmapDataMa
 
 void FVCH_PreparationDataFunctions::CorrectHMapsRange(HeightmapDataMap & HeightMaps, uint32 StableRange)
 {
-	constexpr uint16 MaxValue = 65'535;
 	constexpr uint16 MediumValue = 65'536 / 2 - 1;
 	constexpr double MedV = 65'536 / 2;
+
 	if (StableRange > MediumValue)
 	{
 		UE_LOG(VCH_PrepDataLog, Warning, TEXT("Hright Stable "));
@@ -436,7 +435,6 @@ TArray64<uint8> FVCH_PreparationDataFunctions::LoadImage(const FString& Path)
 
 void FVCH_PreparationDataFunctions::CopyAndRenameHMaps(const FString& HMapPath, const FString& SaveDir, const FString& Mask)
 {
-	//FFileSystem::CopyFile()
 	FNameEncoder Encoder(Mask);
 
 	FString SavePath = HMapPath / SaveDir;
@@ -465,7 +463,6 @@ void FVCH_PreparationDataFunctions::CopyAndRenameHMaps(const FString& HMapPath, 
 				{
 					UE_LOG(VCH_PrepDataLog, Error, TEXT("Copy status %i ,  file:%s "), Status, *FileName);
 				}
-				
 			}
 		}
 	}
@@ -486,18 +483,16 @@ void FVCH_PreparationDataFunctions::GetOffsetAndScale(
 	double ResolutionLand = Resolutinon * 2.0;
 	OutScale = FVector(LevelSize / ResolutionLand, LevelSize / ResolutionLand, (HeightFactor / 256.0) * 100.0);
 	
-	FXmlFile LandFile;
-	if (!LandFile.LoadFile(PathToLandXML))
-	{
-		UE_LOG(VCH_PrepDataLog, Warning, TEXT("Don't open file %s"), *PathToLandXML);
-		return;
-	}
+	// mb TO DO : Calculate offset( not need for UE Tile import)
+	//FXmlFile LandFile;
+	//if (!LandFile.LoadFile(PathToLandXML))
+	//{
+	//	UE_LOG(VCH_PrepDataLog, Warning, TEXT("Don't open file %s"), *PathToLandXML);
+	//	return;
+	//}
 
-	auto RootNode = LandFile.GetRootNode();
-	//auto ZeroLevelNode = RootNode->FindChildNode(ZeroLevelName);
-	//for()
-
-
+	//auto RootNode = LandFile.GetRootNode();
+	
 	UE_LOG(VCH_PrepDataLog, Error, TEXT("Offset %s ,  Scale:%s "), *OutOffset.ToString(), *OutScale.ToString());
 }
 

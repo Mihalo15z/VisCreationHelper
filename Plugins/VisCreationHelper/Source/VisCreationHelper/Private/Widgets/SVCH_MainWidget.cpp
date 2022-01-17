@@ -97,7 +97,6 @@ void SVCH_MainWidget::Construct(const FArguments& InArgs)
 			.Content()
 			[
 				SNew(SBorder)
-				//.ColorAndOpacity(FLinearColor(0.5f, 0.5f, 7.f, 1.f))
 				.ColorAndOpacity(FLinearColor(0.1f, 0.1f, 0.7f, 1.f))
 				.BorderBackgroundColor(FLinearColor(0.1f, 0.1f, 0.7f, 1.f))
 				.ForegroundColor(FLinearColor(0.1f, 0.1f, 0.7f, 1.f))
@@ -131,9 +130,7 @@ void SVCH_MainWidget::Construct(const FArguments& InArgs)
 
 	VariantSetOptions.Add(MakeShared<FString>(TEXT("Test Mode")));
 
-	
 	SwitchModeComboBox->SetSelectedItem(VariantSetOptions[0]);
-
 }
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
