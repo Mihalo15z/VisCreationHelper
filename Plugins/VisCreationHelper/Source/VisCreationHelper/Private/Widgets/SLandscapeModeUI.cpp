@@ -49,6 +49,10 @@ void SLandscapeModeUI::Construct(const FArguments& InArgs)
 		[
 			MakeButton(&SLandscapeModeUI::OnRenameOpenLandscapeClick, TEXT("Rename Open Landscapes"))
 		]
+		+ SVerticalBox::Slot().AutoHeight()
+		[
+			MakeButton(&SLandscapeModeUI::OnMakeLandscapeXMLClick, TEXT("Make xml for HReder/forest"))
+		]
 	];
 	
 }
@@ -104,6 +108,12 @@ FReply SLandscapeModeUI::OnApplyMaterialForOpenLandscapeClick()
 FReply SLandscapeModeUI::OnRenameOpenLandscapeClick()
 {
 	FVCH_LandscapeFunctions::RenameOpenLandscapes();
+	return FReply::Handled();
+}
+
+FReply SLandscapeModeUI::OnMakeLandscapeXMLClick()
+{
+	FVCH_LandscapeFunctions::GenerateLandscapeXML();
 	return FReply::Handled();
 }
 

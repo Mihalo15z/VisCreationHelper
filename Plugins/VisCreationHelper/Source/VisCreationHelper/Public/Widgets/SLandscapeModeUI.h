@@ -26,5 +26,6 @@ private:
 	FReply OnCreateLandscapeMaterialsClick();
 	FReply OnApplyMaterialForOpenLandscapeClick();
 	FReply OnRenameOpenLandscapeClick();
+	FReply OnMakeLandscapeXMLClick();
 
 };

@@ -543,3 +543,36 @@ void FVCH_LandscapeFunctions::ApplyMaterialsForOpenLandscapes()
 	}
 }
 
+void FVCH_LandscapeFunctions::GenerateLandscapeXML()
+{
+	auto ConfigObject = GetDefault<UVCH_Settings>();
+	check(ConfigObject);
+
+	FNameEncoder Encoder(ConfigObject->NameMask);
+
+	FString Result;
+	Result.Append(TEXT("<?xml version=\"1.0\" encoding = \"Windows-1252\"?>\n\t<Data>\n\t<Levels>\n"));
+
+	for (TActorIterator<ALandscapeProxy> LandIter(GWorld, ALandscapeProxy::StaticClass()); LandIter; ++LandIter)
+	{
+		ALandscapeProxy* landscape = *LandIter;
+		if (landscape)
+		{
+			// to do: check land name 
+			auto LandName = Encoder.FromXYName(landscape->GetActorLabel());
+			Result.Append(TEXT("\t\t<info name=\"") + LandName + TEXT("\" "));
+			FVector origen;
+			FVector bound;
+			landscape->GetActorBounds(true, origen, bound);
+			Result.Append(TEXT("\torigin=\"") + origen.ToString());
+			Result.Append(TEXT("\"\tbound=\"") + bound.ToString());
+			Result.Append(TEXT("\"\tlocation=\"") + landscape->GetActorLocation().ToString());
+			Result.Append(TEXT("\" />\n"));
+		}
+	}
+	Result.Append("\t</Levels>\n</Data>");
+	FString Path = FPaths::ProjectConfigDir() + TEXT("InfoLevels.xml");
+	FFileHelper::SaveStringToFile(Result, *Path);
+
+}
+

@@ -20,4 +20,5 @@ public:
 	static void SetLandscapeMaterial();
 	static void RenameOpenLandscapes();
 	static void ApplyMaterialsForOpenLandscapes();
+	static void GenerateLandscapeXML();
 };
