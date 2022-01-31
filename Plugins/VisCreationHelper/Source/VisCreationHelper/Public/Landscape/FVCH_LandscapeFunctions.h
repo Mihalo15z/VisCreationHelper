@@ -18,4 +18,6 @@ public:
 	static void BackupHeightmaps(FString PathToSave);
 	static void UpdateLandscapeName();
 	static void SetLandscapeMaterial();
+	static void RenameOpenLandscapes();
+	static void ApplyMaterialsForOpenLandscapes();
 };

@@ -24,5 +24,7 @@ private:
 	FReply OnBackupHeightmapsClick();
 	FReply OnRenameLandscapesClick();
 	FReply OnCreateLandscapeMaterialsClick();
+	FReply OnApplyMaterialForOpenLandscapeClick();
+	FReply OnRenameOpenLandscapeClick();
 
 };

@@ -472,3 +472,74 @@ void FVCH_LandscapeFunctions::SetLandscapeMaterial()
 	IteratedLevelsForLandscape(SetLandMaterial, true);
 }
 
+void FVCH_LandscapeFunctions::RenameOpenLandscapes()
+{
+	check(GWorld);
+
+	FString PrefixName = TEXT("LSP_");
+
+	for (TActorIterator<ALandscapeStreamingProxy> Iter(GWorld); Iter; ++Iter)
+	{
+		auto* Landscape = *Iter;
+		if (Landscape)
+		{
+			auto LevelPacage = Landscape->GetLevel()->GetPackage();
+			
+			FString LevelName = LevelPacage->GetName();
+			//FString PathName = LevelPacage->GetPathName();
+			FString AssetName = FPaths::GetCleanFilename(LevelName);
+			Landscape->SetActorLabel(PrefixName + AssetName);
+		}
+	}
+}
+
+void FVCH_LandscapeFunctions::ApplyMaterialsForOpenLandscapes()
+{
+	check(GWorld);
+
+	auto ConfigObject = GetDefault<UVCH_Settings>();
+	check(ConfigObject);
+
+	FNameEncoder Encoder(ConfigObject->NameMask);
+
+	auto MaterialSoftPath = ConfigObject->LandscapeBaseMaterial;
+	FString PathToMaterialsInst = TEXT("/Game/") + ConfigObject->PathToLandscapeMatAndTextures + TEXT("/Materials");
+
+	for (TActorIterator<ALandscapeStreamingProxy> Iter(GWorld); Iter; ++Iter)
+	{
+		auto* Landscape = *Iter;
+		if (Landscape)
+		{
+			//auto LevelPacage = Landscape->GetLevel()->GetPackage();
+			//FString LevelName = LevelPacage->GetName();
+			FString LevelName = Landscape->GetActorLabel();
+			FString LevelDataName = Encoder.FromXYName(LevelName);
+			int32 LetterIndex, NumericIndex;
+			Encoder.GetIndeces(LevelDataName, LetterIndex, NumericIndex);
+			FString MatInstName = LevelDataName + TEXT("_Inst");
+			FString PathToMInst = PathToMaterialsInst / MatInstName;
+			// change paths  to /Game/ConfigObject->PathToLandscapeMatAndTextures/MapName
+			auto MatInst = FVCH_AssetFunctions::CreateMaterialInstance(PathToMInst, Cast<UMaterialInterface>(MaterialSoftPath.LoadSynchronous()));
+			if (MatInst)
+			{
+				MatInst->SetScalarParameterValueEditorOnly(TEXT("LitterOffset"), -LetterIndex);
+				MatInst->SetScalarParameterValueEditorOnly(TEXT("NumericOffset"), -NumericIndex);
+				MatInst->PostEditChange();
+				MatInst->MarkPackageDirty();
+				FEditorFileUtils::PromptForCheckoutAndSave({ MatInst->GetPackage() }, true, false);
+				Landscape->LandscapeMaterial = MatInst;
+				FPropertyChangedEvent PropertyChangedEvent(FindFieldChecked<FProperty>(Landscape->GetClass(), FName("LandscapeMaterial")));
+				Landscape->PostEditChangeProperty(PropertyChangedEvent);
+			}
+			//InFunction(LevelData, Landscape);
+			Landscape->MarkPackageDirty();
+			if (bool bSave = true)
+			{
+				Landscape->MarkPackageDirty();
+				Landscape->PostEditChange();
+				FEditorFileUtils::SaveLevel(Landscape->GetLevel());
+			}
+		}
+	}
+}
+

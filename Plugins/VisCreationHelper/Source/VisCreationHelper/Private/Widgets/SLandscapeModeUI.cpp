@@ -41,6 +41,14 @@ void SLandscapeModeUI::Construct(const FArguments& InArgs)
 		[
 			MakeButton(&SLandscapeModeUI::OnCreateLandscapeMaterialsClick, TEXT("Create Landscape Materials"))
 		]
+		+ SVerticalBox::Slot().AutoHeight()
+		[
+			MakeButton(&SLandscapeModeUI::OnApplyMaterialForOpenLandscapeClick, TEXT("Apply Material For Open Landscape"))
+		]
+		+ SVerticalBox::Slot().AutoHeight()
+		[
+			MakeButton(&SLandscapeModeUI::OnRenameOpenLandscapeClick, TEXT("Rename Open Landscapes"))
+		]
 	];
 	
 }
@@ -84,6 +92,18 @@ FReply SLandscapeModeUI::OnRenameLandscapesClick()
 FReply SLandscapeModeUI::OnCreateLandscapeMaterialsClick()
 {
 	FVCH_LandscapeFunctions::SetLandscapeMaterial();
+	return FReply::Handled();
+}
+
+FReply SLandscapeModeUI::OnApplyMaterialForOpenLandscapeClick()
+{
+	FVCH_LandscapeFunctions::ApplyMaterialsForOpenLandscapes();
+	return FReply::Handled();
+}
+
+FReply SLandscapeModeUI::OnRenameOpenLandscapeClick()
+{
+	FVCH_LandscapeFunctions::RenameOpenLandscapes();
 	return FReply::Handled();
 }
 
