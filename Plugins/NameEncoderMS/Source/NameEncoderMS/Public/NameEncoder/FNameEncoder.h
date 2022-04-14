@@ -8,7 +8,7 @@
  * convert name to indexes and convert indexes to name
  * Sample: Mask Test@@##, name TestAC53; indexes X =  03, y = 53
  */
-class VISCREATIONHELPER_API FNameEncoder
+class NAMEENCODERMS_API FNameEncoder
 {
 public:
 	FNameEncoder(const FString& InMask, TCHAR InLetterSymbol = '@', TCHAR InNumberSymbol = '#');

@@ -3,11 +3,37 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "VisCreationHelper.h"
+#include "DoubleVect2.h"
+
 
 /**
  * 
  */
+
+struct FLevelImportData
+{
+public:
+	//FLevelImportData& operator=(FLevelImportData&&) = default;
+	FLevelImportData& operator=(const FLevelImportData&) = default;
+
+	FString ToString() const;
+	FString ToCSVString() const;
+	static FLevelImportData FromString(FString StrData);
+	static FLevelImportData FromCSV(FString SrtData);
+	static FLevelImportData FromStringArray(const TArray<FString> & StrArrData);
+
+public:
+
+	FDoubleVect2 LatAndLon;
+	FDoubleVect2 EndLatAndLon;
+	FDoubleVect2 CoordsXY;
+	FDoubleVect2 EndCoordsXY;
+	FDoubleVect2 SizeXY;
+	int32 ImportStatus = 0;
+	FString LevelName;
+
+};
+
 using LevelImportedDataMap = TMap<FString, FLevelImportData>;
 using HeightmapDataMap = TMap <FString, TArray<uint16> >;
 

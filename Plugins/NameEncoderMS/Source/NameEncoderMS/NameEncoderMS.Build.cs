@@ -1,10 +1,10 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Some copyright should be here...
 
 using UnrealBuildTool;
 
-public class VisCreationHelper : ModuleRules
+public class NameEncoderMS : ModuleRules
 {
-	public VisCreationHelper(ReadOnlyTargetRules Target) : base(Target)
+	public NameEncoderMS(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
@@ -34,24 +34,10 @@ public class VisCreationHelper : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Projects",
-				"InputCore",
-				"UnrealEd",
-				"ToolMenus",
 				"CoreUObject",
 				"Engine",
 				"Slate",
 				"SlateCore",
-                "XmlParser",
-                "Landscape",
-                "MaterialUtilities",
-                "DeveloperSettings",
-                "Foliage",
-                "FoliageEdit",
-                "MercatorConvertorMS",
-                "NameEncoderMS"
-
-
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

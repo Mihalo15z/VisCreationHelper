@@ -4,7 +4,8 @@
 
 #include "CoreMinimal.h"
 #include <limits>
-#include "VisCreationHelper.h"
+#include "DoubleVect2.h"
+
 
 
 
@@ -41,7 +42,7 @@ double constexpr My_Sqrt(double x)
 
 
 
-class VISCREATIONHELPER_API FGeoMercatorConvertor final
+class MERCATORCONVERTORMS_API FGeoMercatorConvertor final
 {
 public:
 	constexpr FGeoMercatorConvertor() = default;

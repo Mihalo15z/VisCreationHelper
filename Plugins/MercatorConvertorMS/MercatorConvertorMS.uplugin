@@ -2,33 +2,23 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.0",
-	"FriendlyName": "VisCreationHelper",
-	"Description": "Tools for creatin visualisation",
+	"FriendlyName": "MercatorConvertorMS",
+	"Description": "",
 	"Category": "MS",
 	"CreatedBy": "Mikhail Stramavus",
 	"CreatedByURL": "",
 	"DocsURL": "",
 	"MarketplaceURL": "",
 	"SupportURL": "",
-	"CanContainContent": false,
+	"CanContainContent": true,
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "VisCreationHelper",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		}
-	],
-	"Plugins": [
-		{
 			"Name": "MercatorConvertorMS",
-			"Enabled": true
-		},
-		{
-			"Name": "NameEncoderMS",
-			"Enabled": true
+			"Type": "Runtime",
+			"LoadingPhase": "PreLoadingScreen"
 		}
 	]
 }
