@@ -16,11 +16,12 @@ public:
 	//FLevelImportData& operator=(FLevelImportData&&) = default;
 	FLevelImportData& operator=(const FLevelImportData&) = default;
 
-	FString ToString() const;
-	FString ToCSVString() const;
-	static FLevelImportData FromString(FString StrData);
-	static FLevelImportData FromCSV(FString SrtData);
-	static FLevelImportData FromStringArray(const TArray<FString> & StrArrData);
+	// TO DO
+	//FString ToString() const;
+	//FString ToCSVString() const;
+	//static FLevelImportData FromString(FString StrData);
+	//static FLevelImportData FromCSV(FString SrtData);
+	//static FLevelImportData FromStringArray(const TArray<FString> & StrArrData);
 
 public:
 
