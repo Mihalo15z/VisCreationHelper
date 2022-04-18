@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 
+template< class T>
+class SComboBox;
 /**
  * 
  */
@@ -19,8 +21,16 @@ public:
 	void Construct(const FArguments& InArgs);
 
 private:
+	void OnSelectedVariantSetChanged(TSharedPtr<FString> NewItem, ESelectInfo::Type SelectType);
+	FText GetCurretnOptionText() const;
+
+private:
 
 	FReply OnSetTexturesForLandscapeMaterialsCleck();
 
 	FString TetureParamNamen;
+
+	TSharedPtr<SComboBox<TSharedPtr<FString> > > SwitchModeImportTComboBox;
+	TArray<TSharedPtr<FString> > VariantSetOptions;
+	FString CurrentTextureParamName;
 };
