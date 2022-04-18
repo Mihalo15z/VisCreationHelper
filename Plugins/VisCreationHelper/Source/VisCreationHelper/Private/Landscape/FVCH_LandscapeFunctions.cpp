@@ -360,10 +360,6 @@ void FVCH_LandscapeFunctions::BackupHeightmaps(FString PathToSave)
 			int32 LandscapeSectionSize = Landscape->NumSubsections  *  Landscape->SubsectionSizeQuads;
 			Info = Landscape->GetLandscapeInfo();
 			FString Name = ClearLandscapeLabelLambda(Landscape->GetActorLabel());
-			// not work for StreamingLandscape procsy
-			//if (Info && !Name.IsEmpty())
-			//	Info->ExportHeightmap(PathToSave / Name + TEXT(".raw"));
-			
 
 			FLandscapeEditDataInterface  EditorLandscapeInterface(Info);
 			int32 MinX(MAX_int32);
@@ -371,21 +367,23 @@ void FVCH_LandscapeFunctions::BackupHeightmaps(FString PathToSave)
 			int32 MaxX(-MAX_int32);
 			int32 MaxY(-MAX_int32);
 			int32 Resolution = 0;
-			if (!(Info->GetLandscapeExtent(MinX, MinY, MaxX, MaxY)/* && Resolution == ((MaxX - MinX > MaxY - MinY) ? MaxY - MinY : MaxX - MinX))*/))
+
+			if (!(Info->GetLandscapeExtent(MinX, MinY, MaxX, MaxY)))
 			{
 				continue;
 			}
 
 			TArray<uint16> HeightData;
-			//HeightData.AddZeroed((MaxX - MinX + 1) * (MaxY - MinY + 1));
-			int32 sizeArr = (LandscapeSectionSize + 1) * (LandscapeSectionSize + 1);
-			HeightData.AddZeroed(sizeArr);
-			//EditorLandscapeInterface.GetHeightDataFast(MinX, MinY, MaxX, MaxY, HeightData.GetData(), 0);
+			int32 SizeArr = (LandscapeSectionSize + 1) * (LandscapeSectionSize + 1);
+			HeightData.AddZeroed(SizeArr);
+
 			EditorLandscapeInterface.GetHeightDataFast(SectionOffset.X, SectionOffset.Y, SectionOffset.X + LandscapeSectionSize, SectionOffset.Y +LandscapeSectionSize, HeightData.GetData(), 0);
 			TArray<uint8> SaveData;
 			
-			SaveData.AddZeroed(sizeArr * 2);
+			SaveData.AddZeroed(SizeArr * 2);
 			FMemory::Memmove(SaveData.GetData(), HeightData.GetData(), SaveData.Num());
+
+			// maybe convert name by maskFormat???
 			FFileHelper::SaveArrayToFile(SaveData, *(PathToSave / Name + TEXT(".raw")));
 		}
 	}
