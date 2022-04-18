@@ -111,10 +111,12 @@ public:
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Import|Paths")
 		FString GlobalImportContentDir = TEXT("_ImportData");
 
+	//UPROPERTY(Config, EditDefaultsOnly, Category = "Import|Textures")
+	//	FString TParamName_BaseMask = TEXT("BaseTexture");
+	//UPROPERTY(Config, EditDefaultsOnly, Category = "Import|Textures")
+	//	FString TParamName_WaterMas = TEXT("Water");
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Import|Textures")
-		FString TParamName_BaseMask = TEXT("BaseTexture");
-	UPROPERTY(Config, EditDefaultsOnly, Category = "Import|Textures")
-		FString TParamName_WaterMas = TEXT("Water");
+		TArray<FString> TextureParamNames = { TEXT("BaseTexture"), TEXT("Water") };
 	int32 GetFinalResolution()const
 	{
 		return Resolution * 2 + 1;
