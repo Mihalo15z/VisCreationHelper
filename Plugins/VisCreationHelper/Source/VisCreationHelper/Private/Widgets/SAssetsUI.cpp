@@ -71,7 +71,7 @@ FReply SAssetsUI::OnSetTexturesForLandscapeMaterialsCleck()
 
 	FString ImportPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + SettingsObject->GlobalImportContentDir / SettingsObject->TexturesDir;
 	FString PathToMaterials = TEXT("/Game/") + SettingsObject->PathToLandscapeMatAndTextures;
-	FVCH_AssetFunctions::SetTexturesForLandMaterials(PathToMaterials, TEXT("BaseTexture"), ImportPath);
+	FVCH_AssetFunctions::SetTexturesForLandMaterials(PathToMaterials, CurrentTextureParamName, ImportPath);
 	return FReply::Handled();
 }
 
