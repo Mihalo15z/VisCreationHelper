@@ -44,6 +44,11 @@ struct  MERCATORCONVERTORMS_API FDoubleVect2
 	{
 		return FVector(X, Y, 0.0f);
 	}
+
+	FORCEINLINE FVector2D ToFVector2D() const
+	{
+		return FVector2D(X, Y);
+	}
 	FString ToString()const
 	{
 		return FString::Printf(TEXT("X = %.9f, Y =%.9f"), X, Y);
