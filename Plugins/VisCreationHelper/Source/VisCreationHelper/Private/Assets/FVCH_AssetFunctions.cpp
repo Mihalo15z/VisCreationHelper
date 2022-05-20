@@ -34,7 +34,7 @@ UTexture* FVCH_AssetFunctions::ImportTextureForLandscape(const FString& Name, co
 		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 		TArray<FString> TextureFileNames;
 		
-		TextureFileNames.Add(Path/Name + TEXT(".png"));
+		TextureFileNames.Add(Path / Name + TEXT(".png"));
 		TArray<UObject*> ImportedAssets = AssetToolsModule.Get().ImportAssets(TextureFileNames, SavePath);
 		if (ImportedAssets.Num() == 0)
 		{
@@ -139,22 +139,32 @@ TArray<FAssetData> FVCH_AssetFunctions::GetAssetsByPath(const FString & InPath)
 
 void FVCH_AssetFunctions::SetTexturesForLandMaterials(const FString& PathToMats, const FString& ParametrName, const FString& ImportPath)
 {
-	auto AssetsData = GetAssetsByPath(PathToMats + TEXT("/Materials"));
-	FString PathToTextures = PathToMats + TEXT("/Textures");
-	for (auto& Asset : AssetsData)
+	if (IFileManager::Get().DirectoryExists(*ImportPath))
 	{
-		auto MatInst = Cast<UMaterialInstanceConstant>(Asset.GetAsset());
-		if (MatInst)
+		TArray<FString > Files;
+		FString Filter = TEXT(".png");
+		FString Mask = ImportPath + TEXT("/*") + Filter;
+		IFileManager::Get().FindFiles(Files, *Mask, true, false);
+
+		FString PathToTextures = PathToMats + TEXT("/Textures");
+		for(auto TextureName :Files)
 		{
-			FString DataName = (Asset.AssetName.ToString()).Replace(TEXT("_Inst"), TEXT(""));
-			UTexture* Texture = ImportTextureForLandscape(DataName, ImportPath, PathToTextures / ParametrName);
-			if (Texture)
+			TextureName.ReplaceInline(*Filter, TEXT(""));
+			auto MaterialName = TextureName + TEXT("_Inst");
+			FSoftObjectPath MatInstPath(PathToMats / TEXT("Materials") / MaterialName + TEXT(".") + MaterialName);
+			auto MatInst = Cast<UMaterialInstanceConstant>(MatInstPath.TryLoad());
+
+			if (MatInst)
 			{
-				MatInst->SetTextureParameterValueEditorOnly(FName(ParametrName), Texture);
-				MatInst->PostEditChange();
-				MatInst->MarkPackageDirty();
-				FEditorFileUtils::PromptForCheckoutAndSave({ MatInst->GetPackage(), Texture->GetPackage() }, true, false);
-				CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
+				UTexture* Texture = ImportTextureForLandscape(TextureName, ImportPath, PathToTextures / ParametrName);
+				if (Texture)
+				{
+					MatInst->SetTextureParameterValueEditorOnly(FName(ParametrName), Texture);
+					MatInst->PostEditChange();
+					MatInst->MarkPackageDirty();
+					FEditorFileUtils::PromptForCheckoutAndSave({ MatInst->GetPackage(), Texture->GetPackage() }, true, false);
+					CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
+				}
 			}
 		}
 	}
