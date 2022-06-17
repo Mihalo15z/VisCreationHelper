@@ -163,8 +163,11 @@ void FVCH_AssetFunctions::SetTexturesForLandMaterials(const FString& PathToMats,
 					MatInst->PostEditChange();
 					MatInst->MarkPackageDirty();
 					FEditorFileUtils::PromptForCheckoutAndSave({ MatInst->GetPackage(), Texture->GetPackage() }, true, false);
+					
+					Texture->BeginDestroy();
 					CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 				}
+				MatInst->BeginDestroy();
 			}
 		}
 	}
