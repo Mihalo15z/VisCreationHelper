@@ -343,11 +343,15 @@ void FVCH_LandscapeFunctions::ImportLandscapeProxyToNewLevels(FString PathToImpo
 
 void FVCH_LandscapeFunctions::BackupHeightmaps(FString PathToSave)
 {
-	auto ClearLandscapeLabelLambda = [](const FString& InName)
+	auto DevCofig = GetDefault<UVCH_Settings>();
+	check(DevCofig);
+
+	FNameEncoder Encoder(DevCofig->NameMask);
+	auto ClearLandscapeLabelLambda = [&Encoder](const FString& InName)
 	{
 		auto Result = InName.Replace(TEXT("LandscapeStreming"), TEXT(""));
 		Result.ReplaceInline(TEXT("Landscape"), TEXT(""));
-		return Result;
+		return Encoder.FromXYName(Result);
 	};
 
 	for (TActorIterator<ALandscapeProxy> Iter(GWorld, ALandscapeProxy::StaticClass()); Iter; ++Iter)

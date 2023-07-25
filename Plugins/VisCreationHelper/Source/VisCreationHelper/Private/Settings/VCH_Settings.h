@@ -55,7 +55,7 @@ public:
 
 	// Level
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Levels|Name")
-		FString NameMask = TEXT("UG**##");
+		FString NameMask = TEXT("UG@@##");
 	// maybe add in private, need convert to double for getter
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Levels|Coords")
 		/*double*/ FString ZeroLat;

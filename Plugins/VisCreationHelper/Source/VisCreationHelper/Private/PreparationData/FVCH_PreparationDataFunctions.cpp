@@ -80,11 +80,11 @@ TArray<FString> FVCH_PreparationDataFunctions::GetLevelNames(const FString& Path
 		IFileManager::Get().FindFiles(Result, *Mask, true, false);
 		for (auto& name : Result)
 		{
-			name.Replace(*Filter, TEXT(""));
+			  name.ReplaceInline(*(Filter), TEXT(""));
 		}
 	}
 
-	return MoveTemp(Result);
+	return  Result;
 }
 
 LevelImportedDataMap FVCH_PreparationDataFunctions::GeneratedImportDataTables(const FString& Path)
@@ -495,6 +495,109 @@ void FVCH_PreparationDataFunctions::GetOffsetAndScale(
 	
 	UE_LOG(VCH_PrepDataLog, Error, TEXT("Offset %s ,  Scale:%s "), *OutOffset.ToString(), *OutScale.ToString());
 }
+
+void FVCH_PreparationDataFunctions::CheckHasDataInChenel(const TArray64<uint8>& Data, bool bR, bool bG, bool bB, bool bA, uint8 MinVal, int64& NumR, int64& NumG, int64& NumB, int64& NumA)
+{
+	constexpr int32 offsetR = 0;
+	constexpr int32 offsetG = 1;
+	constexpr int32 offsetB = 2;
+	constexpr int32 offsetA = 3;
+	constexpr int32 NumChanels = 4;
+
+	const int32 LastIndex = Data.Num() - NumChanels;
+
+
+	for (int32 i(0); i < LastIndex; i += NumChanels)
+	{
+		if (bR && Data[i + offsetR] > MinVal)
+		{
+			++NumR;
+		}
+
+		if (bG && Data[i + offsetG] > MinVal)
+		{
+			++NumG;
+		}
+
+		if (bB && Data[i + offsetB] > MinVal)
+		{
+			++NumB;
+		}
+
+		if (bA && Data[i + offsetA] > MinVal)
+		{
+			++NumA;
+		}
+	}
+}
+
+void FVCH_PreparationDataFunctions::SortWaterAndForestTextures(const FString & InDataPath, const FString & OutWaterPath, const FString & OutForestPath)
+{
+	if (IFileManager::Get().DirectoryExists(*InDataPath))
+	{
+		TArray<FString > Files;
+		FString Filter = TEXT(".png");
+		FString Mask = InDataPath + TEXT("/*") + Filter;
+		IFileManager::Get().FindFiles(Files, *Mask, true, false);
+
+		for (auto PathToImage : Files)
+		{
+			int64 NumR(0);
+			int64 NumG(0);
+			int64 NumB(0);
+			int64 NumA(0);
+
+			constexpr bool NeedR(false);
+			constexpr bool NeedG(true);
+			constexpr bool NeedB(true);
+			constexpr bool NeedA(false);
+			constexpr uint8 MinVal(10);
+
+			CheckHasDataInChenel(LoadImage(PathToImage), NeedR, NeedG, NeedB, NeedA, MinVal, NumR, NumG, NumB, NumA);
+
+			constexpr int64 MinNum(100);
+
+			if (NumG > MinNum)
+			{
+				//IFileManager::Get();
+			}
+			if (NumB > MinNum)
+			{
+
+			}
+		}
+	}
+
+}
+
+void FVCH_PreparationDataFunctions::ConvertTextureToRaw8b(const FString & path)
+{
+	if (IFileManager::Get().DirectoryExists(*path))
+	{
+		TArray<FString > Files;
+		FString Filter = TEXT(".png");
+		FString Mask = path + TEXT("/*") + Filter;
+		IFileManager::Get().FindFiles(Files, *Mask, true, false);
+
+		for (auto PathToImage : Files)
+		{
+			auto pathToText = path / PathToImage;
+			auto ImgData = LoadImage(pathToText);
+			constexpr int32 NumChanels = 4;
+			const int32 LastIndex = ImgData.Num() - NumChanels;
+
+			TArray64<uint8> ResultData;
+			ResultData.Reserve(LastIndex / 4);
+			for (int32 i(0); i < LastIndex; i += NumChanels)
+			{
+				ResultData.Add(ImgData[i]);
+			}
+			FFileHelper::SaveArrayToFile(ResultData, *(pathToText.Replace(TEXT(".png"), TEXT(".raw"))));
+		}
+	}
+}
+
+
 
 
 

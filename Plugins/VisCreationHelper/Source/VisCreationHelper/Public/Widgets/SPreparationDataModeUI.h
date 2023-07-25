@@ -27,6 +27,7 @@ private:
 	FReply OnMakeHMapForTileImportClick();
 	FReply OnCalculateGeneratedParamsClick();
 
+	FReply OnConverPngTo8RawClick();
 protected:
 	int32 CorrectHMapValue;
 

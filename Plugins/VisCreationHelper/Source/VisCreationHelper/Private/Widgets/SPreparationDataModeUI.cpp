@@ -75,6 +75,11 @@ void SPreparationDataModeUI::Construct(const FArguments& InArgs)
 		[
 			MakeButton(&SPreparationDataModeUI::OnCalculateGeneratedParamsClick, TEXT("Calculate Generated Params"))
 		]
+	+ SVerticalBox::Slot()
+		.AutoHeight()
+		[
+			MakeButton(&SPreparationDataModeUI::OnConverPngTo8RawClick, TEXT("Convert Png To 8Raw"))
+		]
 	];
 	
 }
@@ -180,6 +185,14 @@ FReply SPreparationDataModeUI::OnCalculateGeneratedParamsClick()
 		SettingsObject->Resolution,
 		Offset,
 		Scale);
+	return FReply::Handled();
+}
+
+
+FReply SPreparationDataModeUI::OnConverPngTo8RawClick()
+{
+	FString PathToData = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir())/TEXT("ConvertData");
+	FVCH_PreparationDataFunctions::ConvertTextureToRaw8b(PathToData);
 	return FReply::Handled();
 }
 

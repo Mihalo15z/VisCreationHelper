@@ -47,7 +47,7 @@ public:
 	//static void PreparationImportData(FString Path);
 	static HeightmapDataMap GetAllHeightmaps(const FString& Path, int32 Resolution);
 	static TArray<uint16> LoadHeightmap(const FString& Path, int32 Resolution);
-	static TArray<FString> GetLevelNames(const FString& Path);
+	[[nodiscard]] static TArray<FString> GetLevelNames(const FString& Path);
 	//static void CheckMapFiles(FString Path);
 	static LevelImportedDataMap GeneratedImportDataTables(const FString& PathToLandXml);
 	static void RemoveCrackForHeightmaps(HeightmapDataMap& HeightMaps, const FString& Mask, int32 Resolution);
@@ -61,5 +61,8 @@ public:
 	static TArray64<uint8> LoadImage(const FString& Path);
 	static void CopyAndRenameHMaps(const FString& HMapPath, const FString& SavePath, const FString& Mask);
 	static void GetOffsetAndScale(const FString & PathToLandXML, const FString & ZeroLevelName, const FString & Mask, const double& GeoScale, const double& HeightFactor, const double& LandSize, int32 Resolutinon, FIntPoint & OutOffset, FVector & OutScale);
+	static void CheckHasDataInChenel(const TArray64<uint8>& Data, bool bR, bool bG, bool bB, bool bA, uint8 MinVal, int64& NumR, int64& NumG, int64& NumB, int64& numA);
+	static void SortWaterAndForestTextures(const FString& InDataPath, const FString& OutWaterPath, const FString& OutForestPath);
 
+	static void ConvertTextureToRaw8b(const FString& path);
 };
