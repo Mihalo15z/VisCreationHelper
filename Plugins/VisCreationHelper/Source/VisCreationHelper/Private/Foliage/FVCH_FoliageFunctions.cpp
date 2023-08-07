@@ -197,7 +197,7 @@ void FVCH_FoliageFunctions::GenerateForest(const FString& HeightmapsPath, const 
 					}
 
 
-					// проверяем не выходим ли за карту высот
+					// check HMap limit
 					float X = x + DeltaX;
 					float Y = y + DeltaY;
 					check(!(X > Bounds.X * 2.f || Y > Bounds.X * 2.f));
