@@ -23,7 +23,7 @@ void SLandscapeModeUI::Construct(const FArguments& InArgs)
 		// not correct work
 		//+SVerticalBox::Slot().AutoHeight()
 		//[
-		//	MakeButton(&SLandscapeModeUI::OnImportLandscapePrxyClick, TEXT("Import Landscape Prxy"))
+		//	MakeButton(&SLandscapeModeUI::OnImportLandscapeProxyClick, TEXT("Import Landscape Prxy"))
 		//]
 		+ SVerticalBox::Slot().AutoHeight()
 		[
@@ -58,7 +58,7 @@ void SLandscapeModeUI::Construct(const FArguments& InArgs)
 }
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
-FReply SLandscapeModeUI::OnImportLandscapePrxyClick()
+FReply SLandscapeModeUI::OnImportLandscapeProxyClick()
 {
 	auto SettingsObject = GetDefault<UVCH_Settings>();
 	check(SettingsObject);
