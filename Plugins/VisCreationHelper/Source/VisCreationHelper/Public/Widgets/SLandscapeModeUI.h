@@ -19,7 +19,7 @@ public:
 	void Construct(const FArguments& InArgs);
 
 private:
-	FReply OnImportLandscapePrxyClick();
+	FReply OnImportLandscapeProxyClick();
 	FReply OnImportLandscapeClick();
 	FReply OnBackupHeightmapsClick();
 	FReply OnRenameLandscapesClick();
