@@ -46,21 +46,21 @@ void FVCH_LandscapeFunctions::ImpotrLandscapesToNewLevels(FString PathToImportDa
 		GWarn->EndSlowTask();
 		return;
 	}
-	// load Heightmaps (and Remover crack? mb this is different function (work oly *.raw files(open - edit - save);
+
+	// load Heightmaps 
 	FString PathToHeightmaps = PathToImportData / ConfigObject->HeightmapsDir;
 	auto HeightMaps(FVCH_PreparationDataFunctions::GetAllHeightmaps(PathToHeightmaps, ConfigObject->GetFinalResolution()));
-	//FVCH_PreparationDataFunctions::RemoveCrackForHeightmaps(HeightMaps, *ConfigObject->NameMask, ConfigObject->GetFinalResolution());
+
 	// load geo data 
 	FString PathToLandConfig = PathToImportData / ConfigObject->MapsDir / ConfigObject->LandConfigName;
 	auto LevelData(FVCH_PreparationDataFunctions::GeneratedImportDataTables(PathToLandConfig));
+
 	// calculate levelSize(mb calc to GeneratedImportDataTables)
 	double LevelSize = FCString::Atod(*ConfigObject->LevelSize);
 	double LevelZOffset = FCString::Atod(*ConfigObject->ZOffset);
 	FRotator LandRotation = FRotator::ZeroRotator;
 	FVector  LandPosition = FVector(0.f, 0.f, LevelZOffset * 100.f);
 	FVector LandScale(LevelSize / (ConfigObject->GetFinalResolution() - 1.0), LevelSize / (ConfigObject->GetFinalResolution() - 1.0), 100.f);
-
-	//Test HeightMaps Size;
 
 	// test for height maps data (debug)
 	FNameEncoder Encoder(ConfigObject->NameMask);
@@ -81,7 +81,7 @@ void FVCH_LandscapeFunctions::ImpotrLandscapesToNewLevels(FString PathToImportDa
 
 	int32 CurrentLitterIndex, CurrentNumericIndex;
 	int32 LitterOffset, NumericOffset;
-	FString WorldRootPath = /*TEXT("Game/")*/FPaths::ProjectContentDir() + ConfigObject->PathToMaps + SlashStr;
+	FString WorldRootPath = FPaths::ProjectContentDir() + ConfigObject->PathToMaps + SlashStr;
 	const int32 minX(0);
 	const int32 minY(0);
 	const int32 MaxX(ConfigObject->Resolution * ConfigObject->NumSubsections);
@@ -125,20 +125,6 @@ void FVCH_LandscapeFunctions::ImpotrLandscapesToNewLevels(FString PathToImportDa
 					, *(PathToHeightmaps + SlashStr + HeightMap.Key + HMapExtension)
 					, MaterialLayerDataPerLayer
 					, ELandscapeImportAlphamapType::Layered);
-				
-				//FVector Offset(NumericOffset * LevelSize, LitterOffset * LevelSize, 0.f);
-				//if (Offset != FVector::ZeroVector)
-				//{
-				//	NewWorld->PersistentLevel->ApplyWorldOffset(Offset, false);
-
-				//	for (AActor* Actor : NewWorld->PersistentLevel->Actors)
-				//	{
-				//		if (Actor != nullptr)
-				//		{
-				//			GEditor->BroadcastOnActorMoved(Actor);
-				//		}
-				//	}
-				//}
 
 				FEditorFileUtils::SaveLevel(NewWorld->PersistentLevel, *MapFileName);
 			}
@@ -283,20 +269,6 @@ void FVCH_LandscapeFunctions::ImportLandscapeProxyToNewLevels(FString PathToImpo
 				LandscapeProxy->SetActorScale3D(LandScale);
 				LandscapeProxy->SetActorRotation(LandRotation);
 				LandscapeProxy->SetActorLabel(HeightMap.Key + TEXT("LandscapeStreming"));
-
-/*				FVector Offset(NumericOffset * LevelSize, LitterOffset * LevelSize, 0.f);
-				if (Offset != FVector::ZeroVector)
-				{
-					NewWorld->PersistentLevel->ApplyWorldOffset(Offset, false);
-
-					for (AActor* Actor : NewWorld->PersistentLevel->Actors)
-					{
-						if (Actor != nullptr)
-						{
-							GEditor->BroadcastOnActorMoved(Actor);
-						}
-					}
-				}*/	
 
 				if (LandscapeProxy)
 				{
