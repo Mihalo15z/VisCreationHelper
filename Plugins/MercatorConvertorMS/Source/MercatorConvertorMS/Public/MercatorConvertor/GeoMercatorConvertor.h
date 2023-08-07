@@ -39,14 +39,8 @@ double constexpr My_Sqrt(double x)
 }
 
 
-
-
-
 class MERCATORCONVERTORMS_API FGeoMercatorConvertor final
 {
-public:
-	constexpr FGeoMercatorConvertor() = default;
-	~FGeoMercatorConvertor() = default;
 private:
 
 	static constexpr double Radius_Major = (6'378'137.0);
@@ -54,7 +48,7 @@ private:
 	static constexpr double Ratio = (Radius_Minor / Radius_Major);
 	static constexpr double Eccent = (My_Sqrt(1.0 - Ratio * Ratio));
 	static constexpr double Com = (0.5 * Eccent);
-	static constexpr double PI_D = (3.141'592'653'589'793'238'462);
+	static constexpr double PI_D = (3.141'592'653'589);
 	static constexpr double DegreesToRadians = (PI_D / 180.0);
 	static constexpr double RadiansToDegrees = (180.0 / PI_D);
 	static constexpr double HalfPI = PI_D / 2.0;
@@ -62,55 +56,58 @@ private:
 	static constexpr double MinLim = -MaxLim;
 	static constexpr double TempRadToDegDivRMajor = RadiansToDegrees / Radius_Major;
 	static constexpr double TempMulRMajAndDToR = Radius_Major * DegreesToRadians;
-	static constexpr double tol = 0.000'000'000'1;
+	static constexpr double Tol = 0.000'000'000'1;
 	static constexpr double Two_D = 2.0;
 	static constexpr double One_D = 1.0;
 	static constexpr double Half_D = 0.5;
 
 private:
 
-	FORCEINLINE static double GetPhi(double ts)
+	FORCEINLINE static double GetPhi(double Ts)
 	{
 		//int i(15);
-		double Phi( HalfPI - 2.0 * atan(ts));
+		double Phi( HalfPI - 2.0 * atan(Ts));
 
-		double con, dphi;
+		double Con, dPhi;
 		// 770+ times faster
-		CalcDPhi(con, dphi, Phi, ts) 		 
-			&& CalcDPhi(con, dphi, Phi, ts) 
-			&& CalcDPhi(con, dphi, Phi, ts) 
-			&& CalcDPhi(con, dphi, Phi, ts) 
-			&& CalcDPhi(con, dphi, Phi, ts) 
+		CalcDPhi(Con, dPhi, Phi, Ts) 		 
+			&& CalcDPhi(Con, dPhi, Phi, Ts) 
+			&& CalcDPhi(Con, dPhi, Phi, Ts) 
+			&& CalcDPhi(Con, dPhi, Phi, Ts) 
+			&& CalcDPhi(Con, dPhi, Phi, Ts) 
 											
-			&& CalcDPhi(con, dphi, Phi, ts) 
-			&& CalcDPhi(con, dphi, Phi, ts) 
-			&& CalcDPhi(con, dphi, Phi, ts) 
-			&& CalcDPhi(con, dphi, Phi, ts) 
-			&& CalcDPhi(con, dphi, Phi, ts) 
+			&& CalcDPhi(Con, dPhi, Phi, Ts) 
+			&& CalcDPhi(Con, dPhi, Phi, Ts) 
+			&& CalcDPhi(Con, dPhi, Phi, Ts) 
+			&& CalcDPhi(Con, dPhi, Phi, Ts) 
+			&& CalcDPhi(Con, dPhi, Phi, Ts) 
 											
-			&& CalcDPhi(con, dphi, Phi, ts) 
-			&& CalcDPhi(con, dphi, Phi, ts) 
-			&& CalcDPhi(con, dphi, Phi, ts) 
-			&& CalcDPhi(con, dphi, Phi, ts) 
-			&& CalcDPhi(con, dphi, Phi, ts);
+			&& CalcDPhi(Con, dPhi, Phi, Ts) 
+			&& CalcDPhi(Con, dPhi, Phi, Ts) 
+			&& CalcDPhi(Con, dPhi, Phi, Ts) 
+			&& CalcDPhi(Con, dPhi, Phi, Ts) 
+			&& CalcDPhi(Con, dPhi, Phi, Ts);
 
+
+		//***** old code
+		
 		//do
 		//{
-		//	con = Eccent * sin(Phi);
-		//	dphi = HalfPI - 2.0 * atan(ts * pow((1.0 - con) / (1.0 + con), Com)) - Phi;
-		//	Phi += dphi;
+		//	Con = Eccent * sin(Phi);
+		//	dPhi = HalfPI - 2.0 * atan(Ts * pow((1.0 - Con) / (1.0 + Con), Com)) - Phi;
+		//	Phi += dPhi;
 
-		//} while (FMath::Abs<double>(dphi) > tol && --i);
+		//} while (FMath::Abs<double>(dPhi) > Tol && --i);
 
 		return Phi;
 	}
 
-	FORCEINLINE static bool CalcDPhi(double& con, double& dphi, double& Phi, const double& ts)
+	FORCEINLINE static bool CalcDPhi(double& Con, double& dPhi, double& Phi, const double& ts)
 	{
-		con = Eccent * sin(Phi);
-		dphi = HalfPI - Two_D * atan(ts * pow((One_D - con) / (One_D + con), Com)) - Phi;
-		Phi += dphi;
-		return  FMath::Abs<double>(dphi) > tol;
+		Con = Eccent * sin(Phi);
+		dPhi = HalfPI - Two_D * atan(ts * pow((One_D - Con) / (One_D + Con), Com)) - Phi;
+		Phi += dPhi;
+		return  FMath::Abs<double>(dPhi) > Tol;
 	}
 
 public:
@@ -119,12 +116,12 @@ public:
 	{
 		//double x = TempMulRMajAndDToR * Lon;
 		Lat = fmin(MaxLim, fmax(Lat, MinLim));
-		double phi = DegreesToRadians * Lat;
-		double con = Eccent * sin(phi);
-		con = pow((One_D - con) / (One_D + con), Com);
-		double ts = tan(Half_D * (HalfPI - phi)) / con;
-		//double y = -Radius_Major * log(ts);
-		return FDoubleVect2(TempMulRMajAndDToR * Lon, -Radius_Major * log(ts));
+		double Phi = DegreesToRadians * Lat;
+		double Con = Eccent * sin(Phi);
+		Con = pow((One_D - Con) / (One_D + Con), Com);
+		double Ts = tan(Half_D * (HalfPI - Phi)) / Con;
+		//double y = -Radius_Major * log(Ts);
+		return FDoubleVect2(TempMulRMajAndDToR * Lon, -Radius_Major * log(Ts));
 	}
 
 	FORCEINLINE  static FDoubleVect2 GetGeoForMercator(const FDoubleVect2& LatAndLon)
