@@ -17,6 +17,7 @@
 
 
 
+// make and add widgets in TMap UIClasses
 namespace
 {
 	class FBaseUIConstructor
@@ -60,7 +61,7 @@ struct FVCH_UIRegistrator
 private:
 	SVCH_MainWidget* MainWidget = nullptr;
 public:
-	FVCH_UIRegistrator(SVCH_MainWidget* InMainWidget) :MainWidget(InMainWidget) 
+	FVCH_UIRegistrator(SVCH_MainWidget* InMainWidget) :MainWidget(InMainWidget)
 	{
 		check(MainWidget);
 	}
@@ -82,6 +83,7 @@ void SVCH_MainWidget::Construct(const FArguments& InArgs)
 	ChildSlot
 	[
 		// Populate the widget
+		// make ComboBox  and Border for content
 		SNew(SVerticalBox)
 		+ SVerticalBox::Slot()
 		.HAlign(EHorizontalAlignment::HAlign_Fill)
@@ -98,8 +100,6 @@ void SVCH_MainWidget::Construct(const FArguments& InArgs)
 			[
 				SNew(SBorder)
 				.ColorAndOpacity(FLinearColor(0.1f, 0.1f, 0.7f, 1.f))
-				.BorderBackgroundColor(FLinearColor(0.1f, 0.1f, 0.7f, 1.f))
-				.ForegroundColor(FLinearColor(0.1f, 0.1f, 0.7f, 1.f))
 				[
 					SNew(STextBlock)
 					.Text(this, &SVCH_MainWidget::GetCurrentOptionText)
@@ -111,17 +111,15 @@ void SVCH_MainWidget::Construct(const FArguments& InArgs)
 		.HAlign(EHorizontalAlignment::HAlign_Fill)
 		.VAlign(EVerticalAlignment::VAlign_Fill)
 		[
-			SAssignNew(BorederForContent, SBorder)
+			SAssignNew(BorderForContent, SBorder)
 			.VAlign(EVerticalAlignment::VAlign_Fill)
 			.HAlign(EHorizontalAlignment::HAlign_Fill)
 			.Padding(FMargin(2.f, 20.f, 2.f, 2.f))
 		]
 
 	];
-
-
-	BorederForContent->SetContent(SNew(SFoliageModeWidget));
 	
+	// registration other widgets
 	FVCH_UIRegistrator UI_Registrator(this);
 	UI_Registrator.RegistrationUI<SFoliageModeWidget>(::FoliageMode);
 	UI_Registrator.RegistrationUI<SLandscapeModeUI>(::LandscapeMode);
@@ -152,11 +150,14 @@ FReply SVCH_MainWidget::OnClickTestButton2()
 
 void SVCH_MainWidget::OnSelectedVariantSetChanged(TSharedPtr<FString> NewItem, ESelectInfo::Type SelectType)
 {
+	check(NewItem.IsValid());
 	CurrentOptionsText = FText::FromString(*NewItem);
 
+	// testing
 	if (::TestMode == *NewItem)
 	{
-		BorederForContent->SetContent(
+		BorderForContent->ClearContent();
+		BorderForContent->SetContent(
 			SNew(SVerticalBox)
 			+ SVerticalBox::Slot()
 			.HAlign(EHorizontalAlignment::HAlign_Left)
@@ -164,7 +165,7 @@ void SVCH_MainWidget::OnSelectedVariantSetChanged(TSharedPtr<FString> NewItem, E
 			.AutoHeight()
 			[
 				SNew(SButton).OnClicked(this, &SVCH_MainWidget::OnClickTestButton)
-				.Text(FText::FromString(TEXT("Test Button")))
+				.Text(FText::FromString(TEXT("Test Button 1")))
 			]
 		+ SVerticalBox::Slot()
 			.HAlign(EHorizontalAlignment::HAlign_Left)
@@ -179,7 +180,8 @@ void SVCH_MainWidget::OnSelectedVariantSetChanged(TSharedPtr<FString> NewItem, E
 
 	if (UIClasses.Contains(*NewItem))
 	{
-		BorederForContent->SetContent(UIClasses[*NewItem]->MakeUI());
+		BorderForContent->ClearContent();
+		BorderForContent->SetContent(UIClasses[*NewItem]->MakeUI());
 	}
 }
 
