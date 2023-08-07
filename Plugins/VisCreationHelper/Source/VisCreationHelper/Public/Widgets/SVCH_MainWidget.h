@@ -34,7 +34,7 @@ private: // comboBox functions and data
 	FText CurrentOptionsText;
 	FText GetCurrentOptionText() const;
 private:
-	TSharedPtr<SBorder> BorederForContent;
+	TSharedPtr<SBorder> BorderForContent;
 	TSharedPtr<SComboBox<TSharedPtr<FString> > > SwitchModeComboBox;
 
 	friend struct FVCH_UIRegistrator;
