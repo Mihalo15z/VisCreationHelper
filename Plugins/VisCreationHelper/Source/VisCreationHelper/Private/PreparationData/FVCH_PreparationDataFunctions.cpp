@@ -559,11 +559,12 @@ void FVCH_PreparationDataFunctions::SortWaterAndForestTextures(const FString & I
 
 			if (NumG > MinNum)
 			{
+				// to do
 				//IFileManager::Get();
 			}
 			if (NumB > MinNum)
 			{
-
+				// to do
 			}
 		}
 	}
