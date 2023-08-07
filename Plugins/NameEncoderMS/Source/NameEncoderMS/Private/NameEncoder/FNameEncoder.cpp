@@ -173,7 +173,6 @@ bool FNameEncoder::CheckName(FString InName) const
 		return false;
 	}
 
-	// ???
 	auto LetterData = InName.Mid(StartLetterIndex, LenLetterIndex);
 	auto NumericData = InName.Mid(StartNumericIndex, LenNumericIndex);
 	InName.ReplaceInline(LetterData.GetCharArray().GetData(), LetterBlock.GetCharArray().GetData());
