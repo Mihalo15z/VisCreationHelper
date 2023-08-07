@@ -19,9 +19,9 @@ struct  MERCATORCONVERTORMS_API FDoubleVect2
 	{};
 
 	constexpr FDoubleVect2(const FDoubleVect2&) = default;
-	constexpr FDoubleVect2(FDoubleVect2&&) = default;
-	FDoubleVect2& operator=(const FDoubleVect2&) = default;
-	FDoubleVect2& operator=(FDoubleVect2&&) = default;
+	//constexpr FDoubleVect2(FDoubleVect2&&) = default;
+	//FDoubleVect2& operator=(const FDoubleVect2&) = default;
+	//FDoubleVect2& operator=(FDoubleVect2&&) = default;
 
 	FDoubleVect2& operator+=(const FDoubleVect2& Value)
 	{
@@ -59,14 +59,14 @@ struct  MERCATORCONVERTORMS_API FDoubleVect2
 		return abs(OtherVal.X - X + OtherVal.Y - Y) < Epsilon;
 	}
 
-	constexpr FDoubleVect2 operator-(const FDoubleVect2& other) const
+	constexpr FDoubleVect2 operator-(const FDoubleVect2& Other) const
 	{
-		return FDoubleVect2(X - other.X, Y - other.Y);
+		return FDoubleVect2(X - Other.X, Y - Other.Y);
 	}
 
-	constexpr FDoubleVect2 operator+(const FDoubleVect2& other) const
+	constexpr FDoubleVect2 operator+(const FDoubleVect2& Other) const
 	{
-		return FDoubleVect2(X + other.X, Y + other.Y);
+		return FDoubleVect2(X + Other.X, Y + Other.Y);
 	}
 
 	constexpr FDoubleVect2 operator/(const double& Value) const
