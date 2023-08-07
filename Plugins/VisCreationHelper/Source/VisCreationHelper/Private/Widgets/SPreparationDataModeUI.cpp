@@ -48,6 +48,7 @@ void SPreparationDataModeUI::Construct(const FArguments& InArgs)
 			]
 			+ SHorizontalBox::Slot().FillWidth(0.5).Padding(FMargin(5.f,2.f))
 			[
+				//Heightmap range(1 -  32'768)
 				SNew(SSpinBox<int32>)
 				.MinSliderValue(1)
 				.MaxSliderValue(32'768)
@@ -174,7 +175,7 @@ FReply SPreparationDataModeUI::OnCalculateGeneratedParamsClick()
 	check(SettingsObject);
 	FIntPoint Offset;
 	FVector Scale;
-	FString PathToLandConfig = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) +  SettingsObject->GlobalImportContentDir / SettingsObject->MapsDir / SettingsObject->LandConfigName;
+	FString PathToLandConfig = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()) + SettingsObject->GlobalImportContentDir / SettingsObject->MapsDir / SettingsObject->LandConfigName;
 	FVCH_PreparationDataFunctions::GetOffsetAndScale(
 		PathToLandConfig,
 		SettingsObject->ZeroLevelName,
@@ -187,7 +188,6 @@ FReply SPreparationDataModeUI::OnCalculateGeneratedParamsClick()
 		Scale);
 	return FReply::Handled();
 }
-
 
 FReply SPreparationDataModeUI::OnConverPngTo8RawClick()
 {
