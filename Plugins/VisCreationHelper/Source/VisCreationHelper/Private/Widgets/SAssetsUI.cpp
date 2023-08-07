@@ -65,7 +65,6 @@ END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 FReply SAssetsUI::OnSetTexturesForLandscapeMaterialsCleck()
 {
-	// TO DO : Add ComboBox for other type textures
 	auto SettingsObject = GetDefault<UVCH_Settings>();
 	check(SettingsObject && !CurrentTextureParamName.IsEmpty());
 
