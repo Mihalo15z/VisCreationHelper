@@ -36,27 +36,11 @@ public:
 		int32 CorrectHMapValue = 1352;
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Landscape")
 		FString LandscapePrefixName = TEXT("LSP");
-	/*
-	(const FGuid& InGuid,
-	int32 InMinX =  0,
-	int32 InMinY = 0,
-	int32 InMaxX = 510,
-	int32 InMaxY = 510,
-	int32 InNumSubsections = 2,
-	int32 InSubsectionSizeQuads = 255,
-	const TMap<FGuid, TArray<uint16>>& InImportHeightData,
-	const TCHAR* const InHeightmapFileName,
-	const TMap<FGuid, TArray<FLandscapeImportLayerInfo>>& InImportMaterialLayerInfos,
-	ELandscapeImportAlphamapType InImportMaterialLayerType,
-	const TArray<struct FLandscapeLayer>* InImportLayers = nullptr);
-
-	*/
-
 
 	// Level
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Levels|Name")
 		FString NameMask = TEXT("UG@@##");
-	// maybe add in private, need convert to double for getter
+	// maybe add in private, need convert to double for getter(bad work uproprty(bp editor) for type double)
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Levels|Coords")
 		/*double*/ FString ZeroLat;
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Levels|Coords")
@@ -121,13 +105,4 @@ public:
 	{
 		return Resolution * 2 + 1;
 	}
-};
-
-
-USTRUCT()
-struct FConfigDataConstructor
-{
-	GENERATED_USTRUCT_BODY()
-public:
-
 };
